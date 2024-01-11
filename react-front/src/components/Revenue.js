@@ -1,6 +1,7 @@
 import React from 'react';
 import { graphql } from '@apollo/client/react/hoc';
 import gql from 'graphql-tag';
+import LineChart from './LineChart';
 
 const REV_QUERY = gql`
   query {
@@ -26,13 +27,16 @@ const Revenue = ({ loading, error, data }) => {
   return (
     <div>
       <h2>Revenue List</h2>
-      <ul>
+      {/* <ul>
         {data.revenue.map(rev => (
           <li key={rev.quarter}>
           {rev.quarter}: {rev.total_revenues}
         </li>
         ))}
-      </ul>
+      </ul> */}
+        {/* Pass revenue data to LineChart component */}
+      <LineChart data={data.revenue} />
+      
     </div>
   );
 }
