@@ -60,6 +60,8 @@ function getAllTableNames() {
 
 
 function getDataByQuery(sqlQuery) {
+
+  console.log(`sql query: ${sqlQuery}`);
   // Execute the query using async/await
   return new Promise((resolve, reject) => {
     db.all(sqlQuery, (err, rows) => {
@@ -72,10 +74,22 @@ function getDataByQuery(sqlQuery) {
       // console.log(rows);
       console.log(`resolve data:`);
       console.log(data);
-      
+
       resolve(data);
     });
   });
+}
+
+function create_sql_query({ tableName, columnList }) {
+  // Ensure columnList is an array
+  console.log(Array.isArray(columnList));
+  const columns = Array.isArray(columnList) && columnList.length > 0 ? columnList.join(', ') : '*';
+
+  console.log(`column: ${columns}`);
+  // Create the SQL query string
+  const query = `SELECT ${columns} FROM ${tableName};`;
+
+  return getDataByQuery(query);
 }
 
 
@@ -83,7 +97,8 @@ module.exports = {
   getTableColumns,
   getAllTableAndThierColumns,
   getAllTableNames,
-  getDataByQuery
+  getDataByQuery,
+  create_sql_query
 };
 
 

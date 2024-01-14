@@ -6,8 +6,8 @@ import LineChart from './LineChart';
 const REV_QUERY = gql`
   query {
     revenue {
-      total_revenues
       quarter
+      total_revenues
     }
   }
 `;
@@ -23,7 +23,8 @@ const Revenue = ({ loading, error, data }) => {
   if (!data || !data.revenue) {
     return <p>No revenue data available.</p>;
   }
-
+  console.log(data.revenue);
+  console.log(data);
   return (
     <div>
       <h2>Revenue List</h2>
@@ -35,6 +36,7 @@ const Revenue = ({ loading, error, data }) => {
         ))}
       </ul> */}
         {/* Pass revenue data to LineChart component */}
+      
       <LineChart data={data.revenue} />
       
     </div>

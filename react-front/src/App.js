@@ -8,6 +8,7 @@ import {
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import Revenue from "./components/Revenue";
+import CategoryMenu from "./components/CategoryMenu";
 
 const errorLink = onError(({ graphqlErrors, networkError }) => {
   if (graphqlErrors) {
@@ -33,6 +34,7 @@ function App() {
     <ApolloProvider client={client}>
       {/* <Revenue /> */}
       <Revenue />
+      <CategoryMenu/>
     </ApolloProvider>
   );
 }
