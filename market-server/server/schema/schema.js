@@ -100,7 +100,7 @@ const RootQuery = new GraphQLObjectType({
                 return { tables: tableNames };
             }
         },
-        getData: {
+        revenue: {
             type: new GraphQLList(revenueType),
             description: 'Get data with sql query',
             args: {
@@ -117,6 +117,7 @@ const RootQuery = new GraphQLObjectType({
             resolve: async (_, args) => {
                 const { tableName, columnList } = args;
                 const dataByQuery = await create_sql_query({tableName, columnList});
+                console.log (dataByQuery);
                 return dataByQuery;
             }
         },
@@ -167,4 +168,15 @@ module.exports = new GraphQLSchema({
 //       quarter,
 //       total_revenues
 //     },
+//   }
+//and also as this:
+// {
+//     getFreeStyleData(columnList: ["quarter", "total_revenues",
+//            "operating_expenses", "free_cash_flow", "total_gross_profit"]){
+//       quarter,
+//       total_revenues,
+//       total_gross_profit,
+//       operating_expenses,
+//       free_cash_flow
+//     }
 //   }

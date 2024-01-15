@@ -1,8 +1,9 @@
+// CategoryMenu.jsx
+
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import gql from 'graphql-tag';
 import Select from 'react-select';
-import GetQueryData from './QueryData';
 
 const GET_CATEGORIES = gql`
   {
@@ -12,28 +13,20 @@ const GET_CATEGORIES = gql`
   }
 `;
 
-function generateGraphQLQuery(data) {
-  const query = `query {
-    getFreeStyleData(columnList: [${data.map(category => `"${category}"`).join(',')}]) {
-      ${data.join(' ')}
-    }
-  }`;
-  return query;
-}
-
-const CategoryMenu = ({ onSelectCategory }) => {
+const CategoryMenu = ({ updateCategories }) => {
   const { loading, error, data } = useQuery(GET_CATEGORIES);
-  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [submittedCategories, setSubmittedCategories] = useState([]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const options = data.tableColumns.columns.map(category => ({
-    label: category,
-    value: category,
-  }));
+  const options = data.tableColumns.columns
+  .filter(category => category !== 'quarter')
+    .map(category => ({
+      label: category,
+      value: category,
+    }));
 
   const customStyles = {
     multiValue: (styles) => ({
@@ -43,20 +36,15 @@ const CategoryMenu = ({ onSelectCategory }) => {
   };
 
   const handleCategoryChange = selectedOptions => {
-    setSelectedCategories(selectedOptions.map(option => option.value));
     setSelectedOptions(selectedOptions);
   };
 
   const handleButtonClick = () => {
+    const selectedCategories = selectedOptions.map(option => option.value);
     setSubmittedCategories(selectedCategories);
-    const queryToPass = generateGraphQLQuery(selectedCategories);
-    console.log(queryToPass);
-    return (
-    <div>
-      <GetQueryData query={queryToPass}/>
-    </div>
-    );
-  }
+    // Pass the selected categories back to the parent
+    updateCategories(selectedCategories);
+  };
 
   return (
     <div>

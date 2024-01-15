@@ -8,7 +8,7 @@ import {
 } from "@apollo/client";
 import gql from 'graphql-tag';
 import { onError } from "@apollo/client/link/error";
-import CategoryMenu from "./components/CategoryMenu";
+// import CategoryMenu from "./components/CategoryMenu";
 import GetQueryData from "./components/QueryData";
 const errorLink = onError(({ graphqlErrors, networkError }) => {
   if (graphqlErrors) {
@@ -45,7 +45,6 @@ function App() {
     <ApolloProvider client={client}>
       <h2>Market-pro</h2>
       <GetQueryData query={REV_QUERY}/>
-      <CategoryMenu/>
     </ApolloProvider>
   );
 }
