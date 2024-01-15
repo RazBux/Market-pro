@@ -6,18 +6,29 @@ import {
   HttpLink,
   from,
 } from "@apollo/client";
+import gql from 'graphql-tag';
 import { onError } from "@apollo/client/link/error";
-import Revenue from "./components/Revenue";
 import CategoryMenu from "./components/CategoryMenu";
-
+import GetQueryData from "./components/QueryData";
 const errorLink = onError(({ graphqlErrors, networkError }) => {
   if (graphqlErrors) {
     console.log(graphqlErrors);
     graphqlErrors.map(({ message, location, path }) => {
-      alert(`Graphql error ${message}`);
+      return alert(`Graphql error ${message}`);
     });
   }
 });
+
+const REV_QUERY = gql`
+  query {
+    getFreeStyleData (columnList: ["quarter,total_revenues,operating_expenses,total_gross_profit "]) {
+      quarter
+      total_revenues
+      operating_expenses
+      total_gross_profit
+    }
+  }
+`;
 
 const link = from([
   errorLink,
@@ -32,8 +43,8 @@ const client = new ApolloClient({
 function App() {
   return (
     <ApolloProvider client={client}>
-      {/* <Revenue /> */}
-      <Revenue />
+      <h2>Market-pro</h2>
+      <GetQueryData query={REV_QUERY}/>
       <CategoryMenu/>
     </ApolloProvider>
   );

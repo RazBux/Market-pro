@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import gql from 'graphql-tag';
 import Select from 'react-select';
+import GetQueryData from './QueryData';
 
 const GET_CATEGORIES = gql`
   {
@@ -10,6 +11,15 @@ const GET_CATEGORIES = gql`
     }
   }
 `;
+
+function generateGraphQLQuery(data) {
+  const query = `query {
+    getFreeStyleData(columnList: [${data.map(category => `"${category}"`).join(',')}]) {
+      ${data.join(' ')}
+    }
+  }`;
+  return query;
+}
 
 const CategoryMenu = ({ onSelectCategory }) => {
   const { loading, error, data } = useQuery(GET_CATEGORIES);
@@ -39,11 +49,14 @@ const CategoryMenu = ({ onSelectCategory }) => {
 
   const handleButtonClick = () => {
     setSubmittedCategories(selectedCategories);
-
-    //A holder for all the catagory the user choose. 
-    var data = (selectedCategories.map(category => category));
-    console.log(data);
-  };
+    const queryToPass = generateGraphQLQuery(selectedCategories);
+    console.log(queryToPass);
+    return (
+    <div>
+      <GetQueryData query={queryToPass}/>
+    </div>
+    );
+  }
 
   return (
     <div>
