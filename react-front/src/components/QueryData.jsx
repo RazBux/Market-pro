@@ -59,7 +59,12 @@ function QueryData() {
       <LineChart data={data.getFreeStyleData} />
       <CategoryMenu updateCategories={updateCategories} />
       {/* Optionally, you can display the selected categories */}
-      <p>Selected Categories: {selectedCategories.join(', ')}</p>
+      <h3>Selected Categories:</h3>
+      <ul>
+          {selectedCategories.map(category => (
+            <li key={category}>{category}</li>
+          ))}
+        </ul>
     </div>
   );
 }

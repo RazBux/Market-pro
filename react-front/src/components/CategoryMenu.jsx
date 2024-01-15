@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import gql from 'graphql-tag';
 import Select from 'react-select';
+import "../App.css";
 
 const GET_CATEGORIES = gql`
   {
@@ -16,7 +17,7 @@ const GET_CATEGORIES = gql`
 const CategoryMenu = ({ updateCategories }) => {
   const { loading, error, data } = useQuery(GET_CATEGORIES);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const [submittedCategories, setSubmittedCategories] = useState([]);
+  const [, setSubmittedCategories] = useState([]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -41,9 +42,14 @@ const CategoryMenu = ({ updateCategories }) => {
 
   const handleButtonClick = () => {
     const selectedCategories = selectedOptions.map(option => option.value);
-    setSubmittedCategories(selectedCategories);
-    // Pass the selected categories back to the parent
-    updateCategories(selectedCategories);
+    if (selectedCategories.length === 0) {
+      // If there are no selected categories, show an alert
+      alert('Please select at least one category.');
+    } else {
+      // If there are selected categories, update and pass them to the parent
+      setSubmittedCategories(selectedCategories);
+      updateCategories(selectedCategories);
+    }
   };
 
   return (
@@ -56,15 +62,7 @@ const CategoryMenu = ({ updateCategories }) => {
         onChange={handleCategoryChange}
         styles={customStyles}
       />
-      <button onClick={handleButtonClick}>Submit</button>
-      <div>
-        <h3>Submitted Categories:</h3>
-        <ul>
-          {submittedCategories.map(category => (
-            <li key={category}>{category}</li>
-          ))}
-        </ul>
-      </div>
+      <button className="custom-button" onClick={handleButtonClick}>Submit</button>
     </div>
   );
 };

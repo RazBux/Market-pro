@@ -36,3 +36,23 @@
     transform: rotate(360deg);
   }
 }
+
+
+.custom-button {
+  background-color: rgb(220, 227, 240); /* Set the background color to white */
+  color: #506b7c; /* Set the text color */
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  border: 2px solid #646e75; /* Add a border to the button */
+  outline: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+  margin-top: 10px; /* Add margin-top to move it 10px down */
+}
+
+.custom-button:hover {
+  background-color: #98daee;
+  color: rgb(94, 89, 89); /* Change text color on hover */
+}
