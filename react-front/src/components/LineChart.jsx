@@ -13,11 +13,26 @@ const LineChart = ({ data }) => {
   const groupedData = data.reduce((acc, val) => {
     Object.keys(val).forEach((category) => {
       if (category !== 'quarter' && category !== '__typename') {
-        const rawValue = val[category];
+        var rawValue = val[category];
         // Check if the rawValue is not null before further processing
         if (rawValue !== null) {
-          const yValue = parseFloat(rawValue.replace(',', ''));
-          // Check if yValue is not null before pushing it into dataPoints array
+          // Declare yValue without initializing
+          let yValue;
+
+          // Check if the value has parentheses
+          if (typeof rawValue === 'string' && rawValue.includes('(') && rawValue.includes(')')) {
+            // Use replace and assign the result back to rawValue
+            rawValue = rawValue.replace('(', '').replace(')', '');
+
+            // Parse the modified rawValue as a float and make it negative
+            yValue = -parseFloat(rawValue.replace(',', ''));
+          } else {
+            // Parse the rawValue as a float
+            yValue = parseFloat(rawValue.replace(',', ''));
+          }
+
+
+          // Check if yValue is not null before pushing it into dataPoints array 
           if (!isNaN(yValue)) {
             if (!acc[category]) {
               acc[category] = [];
@@ -32,7 +47,7 @@ const LineChart = ({ data }) => {
     });
     return acc;
   }, {});
-  
+
 
   const options = {
     animationEnabled: true,
@@ -56,6 +71,7 @@ const LineChart = ({ data }) => {
       dataPoints: groupedData[category],
     })),
   };
+
 
   return (
     <div>
