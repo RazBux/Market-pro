@@ -6,7 +6,7 @@ import pdfplumber
 import os
 import re 
 import PyPDF2
-import data_collection.code
+# import data_collection.code
 
 def get_valid_table_name(filename):
     # Replace hyphens with underscores
@@ -285,13 +285,10 @@ def get_number_pages(pdf_file):
       
 
 if __name__ == '__main__':
-    # pdf_path = "/Users/razbuxboim/Desktop/pyPro/docs/tesla/repo_4/"
-    # pdf_path = "/Users/razbuxboim/Desktop/pyPro/docs/enphase/report/"
-    # pdf_path = '/Users/razbuxboim/Desktop/pyPro/docs/enphase/try/'
-    # pdf_path = "/Users/razbuxboim/Desktop/pyPro/docs/tesla/try/"
-    pdf_path = "/Users/razbuxboim/Desktop/pyPro/docs/enphase/repo/"
+    # pdf_path = "/Users/razbuxboim/Desktop/pyPro/docs/enphase/repo/"
     
-    db_name = "/Users/razbuxboim/Desktop/pyPro/enpase.db"
+    pdf_path = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/enphase/new/"
+    db_name = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/db/enphase.db"
 
     # corect the take_all_pages - it isn't work right now...
-    active_pull_table(pdf_path, db_name, take_all_pages=True, pages=[4])
+    active_pull_table(pdf_path, db_name, take_all_pages=True, pages=[1])
