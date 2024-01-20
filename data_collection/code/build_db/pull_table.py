@@ -9,6 +9,7 @@ import PyPDF2
 # import data_collection.code
 
 def get_valid_table_name(filename):
+    '''Change the table name to be an SQL valid table name'''
     # Replace hyphens with underscores
     formatted_name = filename.replace('-', '_')
     
@@ -29,8 +30,8 @@ def get_valid_table_name(filename):
 
 
 def clean_valid_column_names(column_list):
-    """will remove unnecessary character of non-alphanumeric from the column name.
-    So we can have valid & clean column name"""
+    '''will remove unnecessary character of non-alphanumeric from the column name.
+    So we can have valid & clean column name'''
     cleaned_columns = []
     for column_name in column_list:
         column_name_str = str(column_name)
