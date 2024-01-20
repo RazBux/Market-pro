@@ -6,6 +6,9 @@ import pandas as pd
 file_path = '/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/enphase/combined.pdf' 
 doc = fitz.open(file_path)
 
+
+
+
 # Extract text from each page
 text = ""
 for page in doc:
