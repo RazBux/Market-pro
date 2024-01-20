@@ -94,6 +94,7 @@ def take_tables_from_pdf(pdf_file, pages_to_look, one_table : bool):
             if check_table_df.empty:
                 print(f"in file: {pdf_file} table is 'empty' in page {page}, or somthing went wrong.")
                 continue
+            print(check_table_df)
             # ----check here how to return problem file in case there is anything that when wrong. 
             # right now there is the continue statment that move to the next page. 
                 # return pdf_file
@@ -101,9 +102,10 @@ def take_tables_from_pdf(pdf_file, pages_to_look, one_table : bool):
             
             # Filter out both empty rows and empty columns
             filtered_table = []
-    
+            
             for row in table:
                 if any(cell.strip() for cell in row):  # Check if any cell in the row is not empty
+                    print(row)
                     filtered_row = [cell if cell.strip() else None for cell in row]  # Replace empty cells with None
                     filtered_table.append(filtered_row)
 
@@ -184,7 +186,9 @@ def data_to_sqlite(db_name, table_name, df_list: pd.DataFrame, values_to_drop=['
         # create new DF to have good columns for table
         columns = clean_valid_column_names(new_df.iloc[0].tolist())
 
+        
         # convert the first column to be name "quarter" 
+        
         new_col_name = "quarter"
         columns[0] = new_col_name
         
@@ -192,8 +196,9 @@ def data_to_sqlite(db_name, table_name, df_list: pd.DataFrame, values_to_drop=['
         data_dict = {col: values for col, values in zip(columns, zip(*data.values))}
         data_dict = pd.DataFrame(data_dict)
         
-        data_dict[new_col_name] = data_dict[new_col_name].apply(convert_quarter_to_float)
-        
+        #### need to add here check that the resolt are really a good ones before sending to "convert_quarter_to_float"
+        # data_dict[new_col_name] = data_dict[new_col_name].apply(convert_quarter_to_float)
+    
         data_dict.to_sql(table_name, conn, if_exists="replace", index=False)
 
         conn.commit()
@@ -285,11 +290,11 @@ def get_number_pages(pdf_file):
     
       
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # pdf_path = "/Users/razbuxboim/Desktop/pyPro/docs/enphase/repo/"
     
-    pdf_path = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/enphase/new/"
-    db_name = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/db/enphase.db"
+    # pdf_path = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/enphase/new/"
+    # db_name = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/db/enphase.db"
 
-    # corect the take_all_pages - it isn't work right now...
-    active_pull_table(pdf_path, db_name, take_all_pages=True, pages=[1])
+    # # corect the take_all_pages - it isn't work right now...
+    # active_pull_table(pdf_path, db_name, take_all_pages=True, pages=[1])

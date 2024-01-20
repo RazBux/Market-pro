@@ -3,6 +3,7 @@ import datetime
 import os
 
 
+# USE "import code" for logging the print statment for debaging and othere uses.
 class LoggerAndPrint:
     def __init__(self, logfile):
         self.terminal = sys.stdout
@@ -12,6 +13,7 @@ class LoggerAndPrint:
         # # This will add the current time stemp into the print.
         # timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
         # log_message = f"{timestamp}: {message}"
+
         self.terminal.write(message)
         self.logfile.write(message)
 

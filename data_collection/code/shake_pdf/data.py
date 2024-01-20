@@ -147,6 +147,7 @@ def download_pdf(filtered_link_file):
             pdf_urls.append(link.strip())
 
     download_files = []
+
     for pdf_u in pdf_urls:
         # Extract the filename from the URL
         filename = os.path.join(report_folder, pdf_u.split("/")[-1])
@@ -180,4 +181,5 @@ def download_pdf(filtered_link_file):
 
             print(f"Renamed: {file_name} -> {new_file_name}")
 
+    return report_folder
 
