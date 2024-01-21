@@ -4,9 +4,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "devs": "nodemon index.js --ignore client",
-    "dev": "nodemon server/server.js",
-    "cle": "nodemon client/index.js"
+    "dev": "nodemon server/server.js"
   },
   "author": "",
   "license": "ISC",

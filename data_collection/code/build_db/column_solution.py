@@ -4,7 +4,7 @@ import pandas as pd
 from fuzzywuzzy import fuzz
 from itertools import zip_longest
 import shutil
-import market_pro.code 
+import data_collection.code 
 
 
 def get_similar(conn_source: sqlite3.Connection,

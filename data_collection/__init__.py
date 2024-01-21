@@ -2,7 +2,6 @@ import sys
 import datetime
 import os
 
-
 # USE "import code" for logging the print statment for debaging and othere uses.
 class LoggerAndPrint:
     def __init__(self, logfile):
@@ -17,9 +16,19 @@ class LoggerAndPrint:
         self.terminal.write(message)
         self.logfile.write(message)
 
-
+    def flush(self):
+        # If flushing is not needed, you can simply pass
+        pass
+# change the dir for the same as the __init__ file
 # Create a directory for logs if it doesn't exist
-log_folder = "logs"
+# log_folder = "logs"
+
+# Get the directory of the current file (__init__.py)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Create a path for the logs directory within the current directory
+log_folder = os.path.join(current_dir, "logs")
+
 if not os.path.exists(log_folder):
     os.makedirs(log_folder)
 
