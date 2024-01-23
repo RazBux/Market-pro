@@ -44,6 +44,7 @@ def table_filteraztion(table):
             cell.strip() for cell in column if cell is not None
         ):
             filtered_columns.append(column)
+            # check
 
     # Transpose the columns back to rows to get the final filtered table
     final_filtered_table = list(map(list, zip(*filtered_columns)))
