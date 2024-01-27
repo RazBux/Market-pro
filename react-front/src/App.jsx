@@ -6,9 +6,7 @@ import {
   HttpLink,
   from,
 } from "@apollo/client";
-import gql from 'graphql-tag';
 import { onError } from "@apollo/client/link/error";
-import Toolbar from "./components/ToolBar";
 import GetQueryData from "./components/QueryData";
 
 
@@ -20,17 +18,6 @@ const errorLink = onError(({ graphqlErrors, networkError }) => {
     });
   }
 });
-
-const REV_QUERY = gql`
-  query {
-    getFreeStyleData (columnList: ["quarter,total_revenues,operating_expenses,total_gross_profit "]) {
-      quarter
-      total_revenues
-      operating_expenses
-      total_gross_profit
-    }
-  }
-`;
 
 const link = from([
   errorLink,
@@ -45,9 +32,7 @@ const client = new ApolloClient({
 function App() {
   return (
     <ApolloProvider client={client}>
-      <Toolbar/>
-      <h6> </h6>
-      <GetQueryData query={REV_QUERY}/>
+      <GetQueryData/>
     </ApolloProvider>
   );
 }

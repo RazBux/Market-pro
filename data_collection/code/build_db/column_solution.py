@@ -4,7 +4,23 @@ import pandas as pd
 from fuzzywuzzy import fuzz
 from itertools import zip_longest
 import shutil
+import re
 import data_collection.code 
+
+def quarter_to_flout(quarter):
+    # change the quarter to be a flout
+    # if it is - "2022.1" or "22 .1" or "22 1" at the end it will be 2022.1 in flout
+    # Use regular expression to find the year and quarter parts
+    match = re.search(r'(\d{4})[^\d]*(\d)', quarter)
+    
+    if match:
+        year = float(match.group(1))
+        quarter = float(match.group(2))
+        # Combine year and quarter to a float value (e.g., 2022.1)
+        return year + quarter / 10.0
+    else:
+        # Return None if the format doesn't match
+        return None
 
 
 def get_similar(conn_source: sqlite3.Connection,
@@ -50,7 +66,8 @@ def get_similar(conn_source: sqlite3.Connection,
     
     if len(quarter_name) > 0:
         # the quarter name returned as a [(2021.1, )] we exstract only the folut from this 
-        quarter_name = float(quarter_name[0][0])
+        quarter_name = quarter_to_flout(quarter_name[0][0])
+        # quarter_name = float(quarter_name[0][0])
         print("Quarter >> ", quarter_name)
         
         # the follwing if else statment is for combaining table in most accurate way.
@@ -223,7 +240,6 @@ def algo_for_col(db_source ,threshold, name="all_conbain"):
         column_names1 = [column[1] for column in columns1]
         column_names2 = [column[1] for column in columns2]
         
-        
         # Perform the column matching and renaming operations here based on the given threshold
         table_n1 = get_similar(conn_source, cursor, big_table_name, table2_name, column_names1, column_names2, threshold)
         big_table_name = table_n1
@@ -237,8 +253,8 @@ def algo_for_col(db_source ,threshold, name="all_conbain"):
 
 
 if __name__ == '__main__':
-    db_source = '/Users/razbuxboim/Desktop/pyPro/T_raz.db'
+    db_source = '/Users/razbuxboim/Desktop/Raz-market-app/solarEdge.db'
     
     db_work = shutil.copy2(db_source, db_source.replace('.db', '_copy.db'))
-    algo_for_col(db_source=db_work, threshold=85, name="tesla")
+    algo_for_col(db_source=db_work, threshold=85, name="solarEdge")
     

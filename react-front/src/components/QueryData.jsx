@@ -1,70 +1,69 @@
-// QueryData.jsx
-
 import React, { useState } from 'react';
 import LineChart from './LineChart';
 import { useQuery, gql } from '@apollo/client';
 import CategoryMenu from './CategoryMenu';
+import ToolBar from './ToolBar';
 
-const START_QUERY = gql`
-  query {
-    getFreeStyleData (columnList: ["quarter,total_revenues,operating_expenses,total_gross_profit "]) {
-      quarter
-      total_revenues
-      operating_expenses
-      total_gross_profit
+const DEFAULT_QUERY = gql`
+  query GetFreeStyleData($tableName: String!) {
+    getFreeStyleData(tableName: $tableName, columnList: ["quarter,total_revenues"]) {
+      data
     }
   }
 `;
 
-function generateGraphQLQuery(categories) {
+function generateGraphQLQuery(selectedTable, categories) {
   const query = gql`
     query {
-      getFreeStyleData(columnList: ["quarter", ${categories.map(category => `"${category}"`).join(',')}]) {
-        quarter
-        ${categories.join(' ')}
+      getFreeStyleData(tableName: "${selectedTable}",columnList: ["quarter", ${categories.map(category => `"${category}"`).join(',')}]) {
+        data
       }
     }
   `;
-
-
-  console.log('Generated Query:', query);
-
   return query;
 }
 
 function QueryData() {
+  const [selectedTable, setSelectedTable] = useState('tesla');
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [query, setQuery] = useState(START_QUERY);
+  const [query, setQuery] = useState(DEFAULT_QUERY); // Define setQuery here
+
+  const { loading, error, data } = useQuery(query, {
+    variables: { tableName: selectedTable },
+    skip: !selectedTable
+  });
 
   const updateCategories = (categories) => {
     setSelectedCategories(categories);
-    const newQuery = generateGraphQLQuery(categories);
+    const newQuery = generateGraphQLQuery(selectedTable, categories);
     setQuery(newQuery);
   };
-
-  const { loading, error, data } = useQuery(query);
+  
+  const updateSelectedTable = (tableName) => {
+    // alert("choose categories now");
+    setSelectedTable(tableName);
+    setSelectedCategories([]);
+    setQuery(DEFAULT_QUERY);
+  };
 
   if (loading) return <p>Loading...</p>;
-  if (error) {
-    console.error('GraphQL Error:', error);
-    return <p>Error: {error.message}</p>;
-  }
-
-  if (!data || !data.getFreeStyleData) {
-    return <p>No revenue data available.</p>;
-  }
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div>
-      <LineChart data={data.getFreeStyleData} />
-      <CategoryMenu updateCategories={updateCategories} />
-      {/* Optionally, you can display the selected categories */}
+      <ToolBar updateSelectedTable={updateSelectedTable} />
+      <h6> </h6>
+      <LineChart data={data.getFreeStyleData} textToDisplay={selectedTable} />
+
+      <CategoryMenu 
+        selectedTable={selectedTable}
+        updateCategories={updateCategories} />
       <h3>Selected Categories:</h3>
       <ul>
-          {selectedCategories.map(category => (
-            <li key={category}>{category}</li>
-          ))}
-        </ul>
+        {selectedCategories.map(category => (
+          <li key={category}>{category}</li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -6,9 +6,8 @@ import pdfplumber
 import os
 import re
 import PyPDF2
-import data_collection.code
+# import data_collection.code
 from utils import util
-
 
 # see if u want to use it...
 def table_filteraztion(table):
@@ -51,7 +50,19 @@ def table_filteraztion(table):
     return final_filtered_table
 
 
-def take_tables_from_pdf(pdf_file, pages_to_look, one_table: bool):
+def extract_table_tabula(pdf_file, pages):
+    # Read the PDF and extract tables
+    tables = tabula.read_pdf(pdf_file, pages=pages, multiple_tables=True)
+    df_list = []
+    for i, table in enumerate(tables):
+        if table.empty:
+            print(f"Empty table found in {pdf_file} on page {pages[i]}")
+        else:
+            df_list.append(table)
+    print("Number of talbes: ", len(df_list))
+    return df_list
+
+def take_tables_from_pdf(pdf_file, pages_to_look):
     """
     This function called from a loop function that iterate over all the pdf files
     and take all the tables from a file and range of pages and return a dataframe
@@ -67,23 +78,16 @@ def take_tables_from_pdf(pdf_file, pages_to_look, one_table: bool):
             # ///PdfPlumber///
             # Extract the table on the current page
 
-            # page = pdf.pages[page_number - 1]  # Page numbering is 1-based
-            # table = page.extract_table()
+            page = pdf.pages[page_number - 1]  # Page numbering is 1-based
+            table = page.extract_table()
 
-            # check_table_df = pd.DataFrame(table)
-            # if check_table_df.empty:
-            #     print(f'''in file: {pdf_file} pdfplumber have issue to collect
-            #           that data and the table is 'empty' in page {page}, or somthing went wrong.''')
-
-            #     table = None
-            #     check_table_df = None
-
-            #     print('try with tablua from JAVA')
-
-            # ////Tablua////
-            table = tabula.read_pdf(pdf_file, pages=page_number, multiple_tables=True)
+            check_table_df = pd.DataFrame(table)
+            if check_table_df.empty:
+                print(f'''in file: {pdf_file} pdfplumber have issue to collect
+                      that data and the table is 'empty' in page {page}, or somthing went wrong.''')
 
             df_tables.append(table)
+            print(table)
 
     print("Number of table collected:", len(df_tables))
     if not len(df_tables) > 0:
@@ -93,27 +97,18 @@ def take_tables_from_pdf(pdf_file, pages_to_look, one_table: bool):
     # list of pd.DataFrames
     df_list = []
 
-    # maybe this is wrong... it was created to tablua-py, may now not be needed...
-    if one_table:
-        # take only the fisrt table from each page
-        for df in df_tables:
-            # df = pd.DataFrame(df[0])  # check this...
-            # df = pd.DataFrame(df)
-            df = df.dropna(how="all")  # Remove rows with all NaN values
-            df = df.reset_index(drop=True)
-            df_list.append(df)
-    else:
-        pass
-        # check this else statment...
-        # Take all the tables
-        for df in df_tables:
-            if isinstance(df, pd.DataFrame):
-                df = df.dropna(how="all")  # Remove rows with all NaN values
-                df = df.reset_index(drop=True)
-                df_list.append(df)
-            else:
-                print("Table is not a DataFrame:", type(df))
-
+    # covert the table to data frame
+    for i, table in enumerate(df_tables):
+        print(i)
+        print("len", len(table))
+        print("type", type(table))
+       
+        # df = pd.DataFrame(table)
+        # df = df.dropna(how="all")  # Remove rows with all NaN values
+        # df = df.reset_index(drop=True)
+        # df_list.append(df)
+    
+    
     for df in df_list:
         if df.empty:
             print(f"Empty table in pdf file >>> {pdf_file}")
@@ -129,14 +124,13 @@ def take_tables_from_pdf(pdf_file, pages_to_look, one_table: bool):
 
 
 def data_to_sqlite(
-    db_name, table_name, df_list: pd.DataFrame, values_to_drop=["QoQ", "YoY"]
+    db_name, table_name, df_list: pd.DataFrame, values_to_drop=["QoQ", "YoY", " ", "", "$"]
 ):
     # Create a SQLite database connection
     conn = sqlite3.connect(db_name)
 
-    for df in df_list:
+    for i, df in enumerate(df_list):
         df = df.T
-        print("df type", type(df))
         # Create a new DataFrame with rows that don't contain the values to drop
         first_column = df.iloc[:, 0]
         # values_to_drop = //optional value - if pass in the method - that what the method will use.
@@ -153,11 +147,17 @@ def data_to_sqlite(
         data = new_df.iloc[1:]
         data_dict = {col: values for col, values in zip(columns, zip(*data.values))}
         data_dict = pd.DataFrame(data_dict)
-
         #### need to add here check that the resolt are really a good ones before sending to "convert_quarter_to_float"
-        # data_dict[new_col_name] = data_dict[new_col_name].apply(convert_quarter_to_float)
-
-        data_dict.to_sql(table_name, conn, if_exists="replace", index=False)
+        # data_dict[new_col_name] = data_dict[new_col_name].apply(util.convert_quarter_to_float)
+        
+        # data_dict.to_sql(table_name+(str)(i), conn, if_exists="replace", index=False)
+        try:
+            # Attempt to write the DataFrame to the SQLite database
+            data_dict.to_sql(table_name + str(i), conn, if_exists="replace", index=False)
+            print(f"Table {table_name}{i} successfully written to the database.")
+        except Exception as e:
+            print(f"Error writing table {table_name}{i} to the database: {str(e)}")
+            continue  # Continue to the next table if an error occurs
 
         conn.commit()
 
@@ -177,6 +177,7 @@ def active_pull_table(filtered_file_path, db_name, take_all_pages: bool, pages=[
 
     problem_file = []
 
+    # Take the files we going to work on and print them in table
     file_list = util.get_list_of_files(filtered_file_path)
     if file_list is None:
         print("There is no files in this path...")
@@ -191,17 +192,22 @@ def active_pull_table(filtered_file_path, db_name, take_all_pages: bool, pages=[
         )
     )
 
+    # Analyze the pdf's and collect their tables
     for pdf_file in file_list:
         print("Start file >>> ", pdf_file)
 
         if take_all_pages:
-            # when we want to scann the hole pdf pages
+            # scan all the pdf pages in the file 
             pages = list(range(1, util.get_number_pages(pdf_file)))
-            print("will take pages:\n", pages)
-            df_list = take_tables_from_pdf(pdf_file, pages, one_table=False)
-        else:
-            # take range or single
-            df_list = take_tables_from_pdf(pdf_file, pages, one_table=True)
+        print("will take pages:\n", pages)
+        
+        # --------------------------------------------
+        # --- Using Tabula
+        df_list = extract_table_tabula(pdf_file, pages)
+        
+        # --- Using PdfPlumber
+        # df_list = take_tables_from_pdf(pdf_file, pages)
+        # --------------------------------------------
 
         # if df_list isnt dataframe it wont be sent to "data_to_sqlite"
         if isinstance(df_list, str):
@@ -212,9 +218,11 @@ def active_pull_table(filtered_file_path, db_name, take_all_pages: bool, pages=[
             problem_file.append(bad_file)
         else:
             # if the put_data return False there is prablom with the file.
+            
             data_to_sqlite(
                 db_name, util.get_valid_table_name(os.path.basename(pdf_file)), df_list
             )
+            
 
     # --see how to take the problem file...
     # Print all the problem files
@@ -230,11 +238,11 @@ def active_pull_table(filtered_file_path, db_name, take_all_pages: bool, pages=[
 
 if __name__ == "__main__":
     print(os.getcwd())
-    '''
-    pdf_path = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/pdf_work/Enphse_new.pdf"
+    
+    pdf_path = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/pdf_work/SE_new.pdf"
 
-    db_name = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/pdf_work/enphase.db"
+    db_name = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/docs/pdf_work/SE_1.db"
 
     # # corect the take_all_pages - it isn't work right now...
     active_pull_table(pdf_path, db_name, take_all_pages=True, pages=[1])
-    '''
+    

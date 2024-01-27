@@ -44,37 +44,22 @@ def clean_valid_column_names(column_list):
 
 
 def convert_quarter_to_float(quarter):
-    """Define a custom function to convert the values of the quarter to flaot. will be like 2022.2."""
-    # Remove any non-alphanumeric characters and convert to lowercase
-    quarter = "".join(filter(str.isalnum, quarter)).lower()
-
-    # Extract the year and quarter
-    year = None
-    if quarter[0] == "q" and quarter[1:].isdigit():
-        year = int(quarter[2:])
-        quarter = quarter[1]
-    elif quarter[-1] == "q" and quarter[:-1].isdigit():
-        year = int(quarter[:-2])
-        quarter = quarter[len(quarter) - 1]
-    else:
-        parts = quarter.split("_")
-        if len(parts) == 2:
-            year_part, quarter_part = parts
-            if year_part.isdigit() and (
-                quarter_part.startswith("q") or quarter_part.isdigit()
-            ):
-                year = int(year_part)
-                quarter = (
-                    quarter_part.replace("q", "")
-                    if quarter_part.startswith("q")
-                    else quarter_part
-                )
-
-    if year is not None:
-        return year + float(quarter) / 10
-    else:
-        return None  # Handle invalid input
-
+    # Check if the input matches the custom format
+    match_custom = re.search(r'(\d{4})[^\d]*(q\d+\.(\d+))', quarter)
+    if match_custom:
+        year = int(match_custom.group(1))
+        quarter = int(match_custom.group(2)[1])
+        return f"{year}.{quarter}"
+    
+    # Check if the input matches the regex-based format
+    match_regex = re.search(r'(\d{4})[^\d]*(\d+\.\d+)', quarter)
+    if match_regex:
+        year = int(match_regex.group(1))
+        quarter = float(match_regex.group(2))
+        return float(f"{year}.{quarter}")
+    
+    # Handle invalid input
+    return quarter
 
 def get_list_of_files(pdf_path):
     """
