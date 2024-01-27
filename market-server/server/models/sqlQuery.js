@@ -1,9 +1,9 @@
 const sqlite3 = require('sqlite3').verbose(); // Import the sqlite3 package
-const db = new sqlite3.Database('../market-server/docs/TSLA.db');
-
+// const db = new sqlite3.Database('../market-server/docs/TSLA.db');
+const db = new sqlite3.Database('../market-server/docs/market-pro.db');
 
 //retrive all the column from the specific table.
-function getTableColumns(tableName) {
+function getTableColumns({tableName}) {
   return new Promise((resolve, reject) => {
     const query = `PRAGMA table_info(${tableName});`;
 
@@ -11,7 +11,10 @@ function getTableColumns(tableName) {
       if (err) {
         reject(err);
       } else {
-        const columns = rows.map(row => row.name);
+
+
+        const columns = rows.map(row => row.name );
+        console.log(`${tableName} columns:`, JSON.stringify(columns, null, 2));
         resolve(columns);
       }
     });
@@ -53,6 +56,7 @@ function getAllTableNames() {
         return;
       }
       const tableNames = tables.map(table => table.name);
+      console.log(`table names: \n${tableNames}`)
       resolve(tableNames);
     });
   });
@@ -82,10 +86,10 @@ function getDataByQuery(sqlQuery) {
 
 function create_sql_query({ tableName, columnList }) {
   // Ensure columnList is an array
-  console.log(Array.isArray(columnList));
+  // console.log(Array.isArray(columnList));
   const columns = Array.isArray(columnList) && columnList.length > 0 ? columnList.join(', ') : '*';
 
-  console.log(`column: ${columns}`);
+  // console.log(`column: ${columns}`);
   // Create the SQL query string
   const query = `SELECT ${columns} FROM ${tableName};`;
 

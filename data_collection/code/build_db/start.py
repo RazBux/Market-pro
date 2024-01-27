@@ -6,7 +6,7 @@ import os
 if __name__ == "__main__":
     print("hello")
     # ---------------------start--------------------
-    pdf_dir = '/Users/razbuxboim/Desktop/Raz-market-app/docs/solaredge/report/'
+    pdf_dir = 'solar'
     file_list = pull_table.get_list_of_files(pdf_dir)
 
     DB_NAME = "solar_edge.db"

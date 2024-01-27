@@ -151,9 +151,9 @@ def merge_table_same_col(source_db, destination_db, groups):
 
 
 if __name__ == "__main__":    
-    db = "/Users/razbuxboim/Desktop/pyPro/Tesla_finc.db"
+    db = "/Users/razbuxboim/Desktop/Raz-market-app/solarEdge_work.db"
     
-    dest_db = "/Users/razbuxboim/Desktop/pyPro/T_raz.db"
+    dest_db = "/Users/razbuxboim/Desktop/Raz-market-app/solarEdge_work_new.db"
     
     g = get_same_col(db)
 

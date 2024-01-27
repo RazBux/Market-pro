@@ -7,15 +7,18 @@ import Select from 'react-select';
 import "../App.css";
 
 const GET_CATEGORIES = gql`
-  {
-    tableColumns {
+  query GetCategories($tableName: String!) {
+    tableColumns(tableName: $tableName) {
       columns
     }
   }
 `;
 
-const CategoryMenu = ({ updateCategories }) => {
-  const { loading, error, data } = useQuery(GET_CATEGORIES);
+const CategoryMenu = ({ selectedTable ,updateCategories }) => {
+  const { loading, error, data } = useQuery(GET_CATEGORIES,{
+    variables: {tableName: selectedTable},
+    skip: !selectedTable,
+  });
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [, setSubmittedCategories] = useState([]);
 
