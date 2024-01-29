@@ -32,7 +32,9 @@ const client = new ApolloClient({
 function App() {
   return (
     <ApolloProvider client={client}>
-      <GetQueryData/>
+      <div className="centered-container">
+        <GetQueryData />
+      </div>
     </ApolloProvider>
   );
 }

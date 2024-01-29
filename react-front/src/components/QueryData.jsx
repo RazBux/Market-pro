@@ -3,6 +3,7 @@ import LineChart from './LineChart';
 import { useQuery, gql } from '@apollo/client';
 import CategoryMenu from './CategoryMenu';
 import ToolBar from './ToolBar';
+import DataTable from './DataTable';
 
 const DEFAULT_QUERY = gql`
   query GetFreeStyleData($tableName: String!) {
@@ -51,7 +52,7 @@ function QueryData() {
 
   return (
     <div>
-      <ToolBar updateSelectedTable={updateSelectedTable} />
+      <ToolBar updateSelectedTable={updateSelectedTable} selectedTable={selectedTable}/>
       <h6> </h6>
       <LineChart data={data.getFreeStyleData} textToDisplay={selectedTable} />
 
@@ -64,6 +65,8 @@ function QueryData() {
           <li key={category}>{category}</li>
         ))}
       </ul>
+
+      <DataTable tableName={selectedTable}/>
     </div>
   );
 }

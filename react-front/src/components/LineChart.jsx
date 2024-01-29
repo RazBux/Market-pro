@@ -4,8 +4,8 @@ import CanvasJSReact from '@canvasjs/react-charts';
 const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 const LineChart = ({ data, textToDisplay }) => {
-  console.log({ data })
-  console.log(`Text to Display in LineChart:, ${textToDisplay}`);
+  // console.log({ data })
+  // console.log(`Text to Display in LineChart:, ${textToDisplay}`);
 
   let groupedData = {};
 
