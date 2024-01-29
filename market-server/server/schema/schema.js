@@ -41,47 +41,6 @@ const revenueType = new GraphQLObjectType({
     })
 });
 
-// const freeStyleType = new GraphQLObjectType({
-//     name: 'resiveDataByFreeStyle',
-//     fields: () => ({
-//         quarter: { type: GraphQLFloat },
-//         automotive_revenues: { type: GraphQLString },
-//         total_revenues: { type: GraphQLString },
-
-//         revenues: { type: GraphQLString },
-
-//         total_gross_profit: { type: GraphQLString },
-//         total_gaap_gross_margin: { type: GraphQLString },
-//         operating_expenses: { type: GraphQLString },
-//         income_from_operations: { type: GraphQLString },
-//         operating_margin: { type: GraphQLString },
-//         net_cash_provided_by_operating_activities: { type: GraphQLString },
-//         capital_expenditures: { type: GraphQLString },
-//         adjusted_ebitda: { type: GraphQLString },
-//         adjusted_ebitda_margin: { type: GraphQLString },
-//         net_income_attributable_to_common_stockholders_gaap: { type: GraphQLString },
-//         net_income_attributable_to_common_stockholders_non_gaap: { type: GraphQLString },
-//         free_cash_flow: { type: GraphQLString },
-//         eps_attributable_to_common_stockholders_diluted_gaap_1: { type: GraphQLString },
-//         eps_attributable_to_common_stockholders_diluted_non_gaap_1: { type: GraphQLString },
-//         energy_generation_and_storage_revenue: { type: GraphQLString },
-//         services_and_other_revenue: { type: GraphQLString },
-//         cash_cash_equivalents_and_investments: { type: GraphQLString },
-//         of_which_regulatory_credits: { type: GraphQLString },
-//         automotive_gross_profit: { type: GraphQLString },
-//         automotive_gross_margin: { type: GraphQLString },
-//         cash_and_cash_equivalents: { type: GraphQLString },
-//         eps_attributable_to_common_stockholders_basic_gaap: { type: GraphQLString },
-//         eps_attributable_to_common_stockholders_basic_non_gaap: { type: GraphQLString },
-//         ebitda: { type: GraphQLString },
-//         ebitda_margin: { type: GraphQLString },
-//         net_income_loss_attributable_to_common_stockholders_gaap: { type: GraphQLString },
-//         net_income_loss_attributable_to_common_stockholders_non_gaap: { type: GraphQLString },
-//         operating_cash_flow_less_capital_expenditures: { type: GraphQLString },
-//     }),
-// });
-
-
 // Define a generic scalar type
 const GenericScalar = new GraphQLScalarType({
     name: 'GenericScalar',
@@ -99,6 +58,13 @@ const freeStyleType = new GraphQLObjectType({
     })
 });
 
+// Define a dynamic GraphQL object type using the generic scalar
+const allDataType = new GraphQLObjectType({
+    name: 'AllDataOfCompany',
+    fields: () => ({
+        data: { type: GenericScalar }
+    })
+});
 
 
 const RootQuery = new GraphQLObjectType({
@@ -173,6 +139,21 @@ const RootQuery = new GraphQLObjectType({
 
                 // Format the data for the dynamic type
                 return dataByQuery.map(row => ({ data: row }));
+            }
+        },
+        getAllData: {
+            type: new GraphQLList(allDataType),
+            description: 'Get all the data about a company',
+            args: {
+                tableName: {
+                    type: GraphQLString,
+                    defaultValue: 'tesla'
+                }
+            },
+            resolve: async (_, args) => {
+                const {tableName} = args;
+                const getAllCompData = await create_sql_query({tableName});
+                return getAllCompData.map(row => ({data: row}));
             }
         }
     })
