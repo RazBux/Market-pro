@@ -32,6 +32,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -43,10 +44,12 @@
 
 /*Centered the Market-pro app*/
 .centered-container {
-  width: 100%; /* Or the width you desire */
-  max-width: 1200px; /* Maximum width of the container */
+  width: 100%;
+  /* Or the width you desire */
+  max-width: 1200px;
+  /* Maximum width of the container */
   margin: auto;
-  padding: 20px;
+  padding: 10px;
 
   /* This should be the background color of your container */
   background-color: rgb(247, 249, 246)
@@ -55,30 +58,35 @@
 
 /*submit button */
 .custom-button {
-  background-color: rgb(220, 227, 240); /* Set the background color to white */
-  color: #506b7c; /* Set the text color */
+  background-color: rgb(220, 227, 240);
+  /* Set the background color to white */
+  color: #506b7c;
+  /* Set the text color */
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  border: 2px solid #646e75; /* Add a border to the button */
+  border: 2px solid #646e75;
+  /* Add a border to the button */
   outline: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease;
-  margin-top: 10px; /* Add margin-top to move it 10px down */
+  margin-top: 10px;
+  /* Add margin-top to move it 10px down */
 }
 
 /* Submit botton for the search categories*/
 .custom-button:hover {
   background-color: #98daee;
-  color: rgb(94, 89, 89); /* Change text color on hover */
+  color: rgb(94, 89, 89);
+  /* Change text color on hover */
 }
 
 .toolbar {
   display: flex;
   align-items: center;
   background-color: #3e659d;
-  color: rgb(162, 38, 38);
+  color: rgb(43, 42, 42);
   padding: 10px;
 }
 
@@ -118,46 +126,77 @@
 }
 
 .market {
-  color: rgba(11, 11, 11, 0.865);
-  font-weight: bold;  /* Makes text bold */
-  font-size: 24px;    /* Increases text size; adjust as needed */
-  padding: 10px;      /* Adds padding around the text */
-  margin: 10px 0;     /* Adds vertical margin for spacing; adjust as needed */
+  color: rgb(20, 20, 20);
+  font-weight: bold;
+  /* Makes text bold */
+  font-size: 24px;
+  /* Increases text size; adjust as needed */
+  padding: 10px;
+  /* Adds padding around the text */
+  margin: 10px 0;
+  /* Adds vertical margin for spacing; adjust as needed */
 }
-
 
 /* Table style */
 .table-container {
-  width: 100%; /* Container takes the full width of the parent */
-  overflow-x: auto; /* Enables horizontal scrolling */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on touch devices */
+  width: 100%;
+  /* Container takes the full width of the parent */
+  overflow-x: auto;
+  /* Enables horizontal scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scrolling on touch devices */
 }
 
 table {
-  width: 100%; /* Table takes full width of its container */
-  min-width: 600px; /* Minimum width of the table, adjust as needed */
+  width: 100%;
+  /* Table takes full width of its container */
+  min-width: 600px;
+  /* Minimum width of the table, adjust as needed */
   /* Additional styling for the table */
   border-collapse: collapse;
 }
 
-th, td {
-  padding: 8px; /* Padding for table cells */
-  text-align: left; /* Align text to the left, adjust as needed */
-  border-bottom: 1px solid #ddd; /* Border for cells */
+/* table style */
+/*react-table column*/
+th {
+  padding: 8px;
+  text-align: left;
+  border: 1px solid #ddd;
+  background-color: #f2f2f5;
+  box-shadow: 1px 1px 1px #888;
 }
 
+/*react-table cell*/
+td {
+  padding: 8px;
+  /* Padding for table cells */
+  text-align: left;
+  /* Align text to the left, adjust as needed */
+  /* Border for cells */
+  border: 1px solid #ddd;
+}
 
+/*hr style*/
 hr {
-  width: 80%; /* Set the width of the HR to 80% of its parent */
-  margin: 0 auto; /* Center the HR */
-  border: 0; /* Remove the default border */
-  height: 1px; /* Set a height for the HR */
-  background-color: #919191; /* Set the HR color */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Add shadow below the HR */
+  width: 70%;
+  /* Set the width of the HR to 80% of its parent */
+  margin: 0 auto;
+  /* Center the HR */
+  border: 0;
+  /* Remove the default border */
+  height: 1px;
+  /* Set a height for the HR */
+  background-color: #919191;
+  /* Set the HR color */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  /* Add shadow below the HR */
 }
 
 .no-select {
-  -webkit-user-select: none; /* Safari */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Firefox */
+  -webkit-user-select: none;
+  /* Safari */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently supported by Chrome, Opera, and Firefox */
 }

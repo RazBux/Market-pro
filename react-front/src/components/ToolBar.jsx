@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery, gql } from '@apollo/client';
+import Select from 'react-select';
 import "../App.css";
 
 const GET_TABLES_QUERY = gql`
@@ -11,40 +12,46 @@ const GET_TABLES_QUERY = gql`
 `;
 
 const ToolBar = ({ updateSelectedTable, selectedTable }) => {
-    const [showTables, setShowTables] = useState(false);
     const { data, loading, error } = useQuery(GET_TABLES_QUERY);
 
-    const handleSearchClick = () => {
-        setShowTables(!showTables);
-    };
-
-    const handleTableClick = (tableName) => {
-        updateSelectedTable(tableName);
-        setShowTables(false);
+    // Function to handle the change in select input
+    const handleChange = (selectedOption) => {
+        updateSelectedTable(selectedOption.value);
     };
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
-    const tableNames = data && data.dbTables && data.dbTables.tables ? data.dbTables.tables : [];
+    // Preparing options for the select input
+    const options = data && data.dbTables && data.dbTables.tables
+        ? data.dbTables.tables.map(table => ({ value: table, label: table }))
+        : [];
+
+    // // If want to show in the search the company name... 
+    // // Determine the current value for the select
+    // const selectedValue = options.find(option => option.value === selectedTable);
+
+    const customStyles = {
+        multiValue: (styles) => ({
+            ...styles,
+            backgroundColor: 'lightblue',
+        })
+    };
 
     return (
         <div className="toolbar">
             <div className="market">Market-pro</div>
             <div className="search-container">
-                <input type="text" placeholder="Search company…" onClick={handleSearchClick} />
-                {showTables && (
-                    <div className="dropdown">
-                        {tableNames.map((table, index) => (
-                            <div key={index} onClick={() => handleTableClick(table)} className="dropdown-item">
-                                {table}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                <Select
+                    options={options}
+                    onChange={handleChange}
+                    value={null}
+                    // value={selectedValue}
+                    placeholder="Search company…"
+                    // className="select-component" // Add your custom styling class if needed
+                    styles={customStyles}
+                />
             </div>
-
-            {/* Use the selectedTable to construct the path for the logo */}
             <img src={`/assets/logo/${selectedTable}.svg`} alt={`${selectedTable} logo`} style={{ width: '50px', marginLeft: '30px' }} />
         </div>
     );
