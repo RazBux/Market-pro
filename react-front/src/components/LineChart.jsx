@@ -42,6 +42,7 @@ const LineChart = ({ data, textToDisplay }) => {
     title: { text: textToDisplay },
     axisY: {
       title: 'Values (in millions)',
+      // >> need to change the sing base on the company M and T...
       valueFormatString: '#,##0M',
     },
     toolTip: {
