@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose(); // Import the sqlite3 package
-// const db = new sqlite3.Database('../market-server/docs/TSLA.db');
-const db = new sqlite3.Database('../market-server/docs/market-pro.db');
+// const db = new sqlite3.Database('../market-server/docs/market-pro.db');
+const db = new sqlite3.Database('./docs/market-pro.db');
 
 //retrive all the column from the specific table.
 function getTableColumns({ tableName }) {
