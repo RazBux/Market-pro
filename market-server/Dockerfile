@@ -12,7 +12,7 @@ COPY ./docs/market-pro.db /usr/src/app/docs/market-pro.db
 RUN npm install
 
 # Rebuild sqlite3 specifically for the container environment
-# RUN npm rebuild sqlite3 --build-from-source
+RUN npm rebuild sqlite3 --build-from-source
 
 EXPOSE 8000
 CMD [ "node", "server/server.js" ]
