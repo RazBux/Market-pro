@@ -12,6 +12,8 @@ services:
     image: marketprocr.azurecr.io/market-front:latest
     ports:
       - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://market-server:8000/graphql
     container_name: market-front
 
 
