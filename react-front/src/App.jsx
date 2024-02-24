@@ -9,6 +9,7 @@ import {
 import { onError } from "@apollo/client/link/error";
 import GetQueryData from "./components/QueryData";
 
+const backendURL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/graphql";
 
 const errorLink = onError(({ graphqlErrors, networkError }) => {
   if (graphqlErrors) {
@@ -21,7 +22,7 @@ const errorLink = onError(({ graphqlErrors, networkError }) => {
 
 const link = from([
   errorLink,
-  new HttpLink({ uri: "http://localhost:8000/graphql" }),
+  new HttpLink({ uri: backendURL }),
 ]);
 
 const client = new ApolloClient({
