@@ -1,40 +1,18 @@
-# compose for amd64
-version: '3'
+# with ragular of arm64
+## start:: docker-compose up 
+## stop:: docker-compose down
+## build:: docker-compose build
+
+version: '3' 
 
 services:
   market-server:
-    image: marketprocr.azurecr.io/market-server:latest
+    image: public.ecr.aws/r1h0y2m2/test:market-server
     ports:
       - "8000:8000"
-    container_name: market-server
 
   market-front:
-    image: marketprocr.azurecr.io/market-front:latest
+    # image: market-front:latest
+    image: public.ecr.aws/r1h0y2m2/test:market-front
     ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_BACKEND_URL=http://market-server:8000/graphql
-    container_name: market-front
-
-
-
-
-# with ragular of arm64
-# ## start:: docker-compose up 
-# ## stop:: docker-compose down
-# ## build:: docker-compose build
-
-# version: '3' 
-
-# services:
-#   market-server:
-#     image: market-server:dev
-#     ports:
-#       - "8000:8000"
-#     container_name: practical_chaplygin
-
-#   market-front:
-#     image: market-front:dev
-#     ports:
-#       - "3000:3000"
-#     container_name: quirky_ritchie
+      - "80:3000"

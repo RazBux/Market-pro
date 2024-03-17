@@ -1,0 +1,23 @@
+{
+    "family": "market-server",
+    "requiresCompatibilities": ["FARGATE"],
+    "networkMode": "awsvpc",
+    "cpu": "256",
+    "memory": "512",
+    "containerDefinitions": [
+      {
+        "name": "market-server",
+        "image": "public.ecr.aws/r1h0y2m2/test:market-server",
+        "cpu": 256,
+        "memory": 512,
+        "portMappings": [
+          {
+            "containerPort": 8000,
+            "hostPort": 8000
+          }
+        ],
+        "essential": true
+      }
+    ]
+  }
+  

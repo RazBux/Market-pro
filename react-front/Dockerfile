@@ -2,7 +2,6 @@
 ## run:: docker run -d -p 3000:3000 market-front:dev
 
 FROM node:20.10-alpine
-
 WORKDIR /react-front/
 
 COPY public/ /react-front/public
