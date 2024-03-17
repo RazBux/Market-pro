@@ -19,12 +19,11 @@ def go(file_path):
     for url in urls:
         print(url)
     
-    output_file_path = '/Users/razbuxboim/Desktop/Raz-market-app/docs/monday/new_link.txt'
-
     # Write each URL to the output file
-    with open(output_file_path, 'w') as file:
+    with open(file_path, 'w') as file:
         for url in urls:
             file.write(url + '\n')
+
 
 # ---------------------start--------------------
 if __name__ == "__main__":
@@ -42,7 +41,6 @@ if __name__ == "__main__":
 
     # filtered_file = data.manipulate_links(filtered_file, old_phrase, new_phrase)
 
-    
     output_file_path = '/Users/razbuxboim/Desktop/Raz-market-app/docs/monday/new_link.txt'
     report_folder_path = data.download_pdf(output_file_path)
 
