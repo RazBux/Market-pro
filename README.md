@@ -6,7 +6,7 @@ Market Pro is a dynamic web application designed to automate the collection of r
 
 ## Features
 
-- **Data Scraping**: Automated scraping of revenue data from various company reports with Python using mainly PyPdf2 and Pandas.
+- **Data Scraping**: Automated scraping of revenue data from various company reports with Python using mainly PyPdf2 and Pandas .
 - **Data Visualization**: Interactive graphs to visualize revenue trends and insights.
 - **GraphQL API**: Efficient data retrieval with GraphQL, enabling fast and flexible queries.
 
@@ -22,8 +22,8 @@ Market Pro is a dynamic web application designed to automate the collection of r
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/market-pro.git
-   cd market-pro
+   git clone https://github.com/RazBux/Market-pro.git
+   cd Market-pro
    ```
 
 2. **Install Dependencies**
