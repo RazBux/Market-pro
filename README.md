@@ -14,8 +14,8 @@ Market Pro is a dynamic web application designed to automate the collection of r
 
 ### Prerequisites
 
-- Node.js (v14.x or later)
-- npm (v6.x or later)
+- Node.js (v20.10.x or later)
+- npm (v10.2.3 or later)
 
 ### Installation
 
