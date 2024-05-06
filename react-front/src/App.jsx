@@ -9,7 +9,10 @@ import {
 import { onError } from "@apollo/client/link/error";
 import GetQueryData from "./components/QueryData";
 
-const backendURL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/graphql";
+// const backendURL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/graphql";
+const backendURL = "http://localhost:8000/graphql";
+
+// console.log("backendURL", backendURL);
 
 const errorLink = onError(({ graphqlErrors, networkError }) => {
   if (graphqlErrors) {
