@@ -11,6 +11,7 @@ const GET_TABLE_DATA = gql`
 `;
 
 const DataTable = ({ tableName }) => {
+
     const { data, loading, error } = useQuery(GET_TABLE_DATA, {
         variables: { tableName: tableName },
         skip: !tableName,
@@ -43,10 +44,9 @@ const DataTable = ({ tableName }) => {
 
     return (
         <div>
-            <div>
-                <br />
-                <hr className="w-70 mx-auto border-0 h-1 bg-gray-600 shadow-md dark:bg-gray-900" />
-                <h3 className="dark:text-white">{tableName.toUpperCase()} DATA:</h3>
+            <div className='p-2'>
+                <hr className="w-9/12 mx-auto border-0 h-1 bg-gray-600 shadow-md dark:bg-gray-900" />
+                <h3 className="text-xl font-semibold dark:text-gray-800">{tableName.toUpperCase()} DATA:</h3>
             </div>
             <div className="overflow-x-auto">
                 <table {...getTableProps()} className="table-auto w-full min-w-max border-collapse">
@@ -82,4 +82,3 @@ const DataTable = ({ tableName }) => {
 };
 
 export default DataTable;
-

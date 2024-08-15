@@ -5,7 +5,11 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'invert-negative-1': '#737373', // Replace with your color value
+      },
+    },
   },
   plugins: [],
 }

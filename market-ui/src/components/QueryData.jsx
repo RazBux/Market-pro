@@ -51,25 +51,23 @@ function QueryData() {
   if (error) return <p>Error: {error.message}</p>;
 
   return (
+    // <div className='bg-neutral-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200'>
     <div>
       <ToolBar updateSelectedTable={updateSelectedTable} selectedTable={selectedTable} />
-      <h6> </h6>
+      <LineChart data={data.getFreeStyleData} selectedTable={selectedTable} />
+      <div className='m-2'>
+        <CategoryMenu
+          selectedTable={selectedTable}
+          updateCategories={updateCategories} />
+        <h3 className='pl-2 font-bold'>Selected Categories:</h3>
+        <ul className='pb-1 pl-4 font-serif'>
+          {selectedCategories.map(category => (
+            <li key={category}>{category}</li>
+          ))}
+        </ul>
 
-      {/* <div className="w-1/2">
-        <LineChart data={data.getFreeStyleData} textToDisplay={selectedTable} />
-      </div> */}
-      <LineChart data={data.getFreeStyleData} textToDisplay={selectedTable} />
-      <CategoryMenu
-        selectedTable={selectedTable}
-        updateCategories={updateCategories} />
-      <h3>Selected Categories:</h3>
-      <ul>
-        {selectedCategories.map(category => (
-          <li key={category}>{category}</li>
-        ))}
-      </ul>
-
-      <DataTable tableName={selectedTable} />
+      </div>
+        <DataTable tableName={selectedTable} />
     </div>
   );
 }

@@ -1,10 +1,10 @@
 // CategoryMenu.jsx
-
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import gql from 'graphql-tag';
-import Select from 'react-select';
-import "../App.css";
+// import Select from 'react-select';
+import MySelect from './MySelect';
+import { useDarkModeContext } from '../contexts/DarkModeContext';
 
 const GET_CATEGORIES = gql`
   query GetCategories($tableName: String!) {
@@ -14,9 +14,10 @@ const GET_CATEGORIES = gql`
   }
 `;
 
-const CategoryMenu = ({ selectedTable ,updateCategories }) => {
-  const { loading, error, data } = useQuery(GET_CATEGORIES,{
-    variables: {tableName: selectedTable},
+const CategoryMenu = ({ selectedTable, updateCategories }) => {
+  const { darkTheme } = useDarkModeContext();
+  const { loading, error, data } = useQuery(GET_CATEGORIES, {
+    variables: { tableName: selectedTable },
     skip: !selectedTable,
   });
   const [selectedOptions, setSelectedOptions] = useState([]);
@@ -26,18 +27,11 @@ const CategoryMenu = ({ selectedTable ,updateCategories }) => {
   if (error) return <p>Error: {error.message}</p>;
 
   const options = data.tableColumns.columns
-  .filter(category => category !== 'quarter')
+    .filter(category => category !== 'quarter')
     .map(category => ({
       label: category,
       value: category,
     }));
-
-  const customStyles = {
-    multiValue: (styles) => ({
-      ...styles,
-      backgroundColor: 'lightblue',
-    })
-  };
 
   const handleCategoryChange = selectedOptions => {
     setSelectedOptions(selectedOptions);
@@ -57,15 +51,16 @@ const CategoryMenu = ({ selectedTable ,updateCategories }) => {
 
   return (
     <div>
-      <h2>Categories</h2>
-      <Select
-        isMulti
-        options={options}
-        value={selectedOptions}
-        onChange={handleCategoryChange}
-        styles={customStyles}
-      />
-      <button className="custom-button" onClick={handleButtonClick}>Submit</button>
+      <h1 className='font-extrabold text-xl mb-1'>Categories</h1>
+      <MySelect isMulti={true} options={options} handleChange={handleCategoryChange} darkMode={darkTheme} />
+
+      <button
+        className="bg-blue-500 text-white font-semibold mt-2 mb-2 py-2 px-4 rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-gray-700 dark:hover:bg-gray-800"
+        onClick={handleButtonClick}
+      >
+        Submit
+      </button>
+
     </div>
   );
 };

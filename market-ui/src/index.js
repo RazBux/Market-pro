@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import "./App.css";
 import {
   ApolloClient,
   InMemoryCache,
@@ -11,6 +10,7 @@ import {
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import GetQueryData from "./components/QueryData";
+import { DarkModeProvider } from './contexts/DarkModeContext';
 
 const backendURL = "http://localhost:8000/graphql";
 
@@ -38,8 +38,12 @@ const client = new ApolloClient({
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ApolloProvider client={client}>
-      <GetQueryData />
+    <ApolloProvider client={client} >
+      <div className='flex flex-col min-h-screen bg-neutral-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200 '>
+        <DarkModeProvider> {/* the Dark mode for accsessing the values from all over the app */}
+          <GetQueryData />
+        </DarkModeProvider>
+      </div>
     </ApolloProvider>
   </React.StrictMode>
 );
