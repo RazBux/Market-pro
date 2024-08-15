@@ -36,11 +36,11 @@ const ToolBar = ({ updateSelectedTable, selectedTable }) => {
 
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-2 bg-sky-500 text-gray-800 dark:bg-gray-900 dark:text-white">
+        <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-2 bg-sky-500 text-gray-800 dark:bg-gray-900">
             <div className="flex items-center">
                 <div className="font-bold text-xl text-black dark:text-white mr-4">Market-pro</div>
                 <img src={`/assets/logo/${selectedTable}.svg`} alt={`${selectedTable} logo`} className="hidden md:block w-20 h-20 sm:w-0 sm:h-0 md:w-20 md:h-20" />
-                <div className="custom-select-container">
+                <div className='m-2'>
                     <Select
                         options={options}
                         onChange={handleChange}
