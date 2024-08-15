@@ -12,7 +12,8 @@ import { onError } from "@apollo/client/link/error";
 import GetQueryData from "./components/QueryData";
 import { DarkModeProvider } from './contexts/DarkModeContext';
 
-const backendURL = "http://localhost:8000/graphql";
+// const backendURL = "http://localhost:8000/graphql";
+const backendURL = "http://35.174.189.194:8000/graphql"; //for production
 
 // console.log("backendURL", backendURL);
 
