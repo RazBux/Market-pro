@@ -9,6 +9,8 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # Concatenate the company_data folder name to the path
 ED_path = os.path.join(script_dir, 'ED_company_data')
 
+
+
 # create list of the the .json files in ED_company_data dir
 files = []
 for dirpath, _, filenames in os.walk(ED_path):
