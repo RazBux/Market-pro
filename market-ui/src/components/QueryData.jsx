@@ -25,7 +25,7 @@ function generateGraphQLQuery(selectedTable, categories) {
 }
 
 function QueryData() {
-  const [selectedTable, setSelectedTable] = useState('tesla');
+  const [selectedTable, setSelectedTable] = useState('monday');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [query, setQuery] = useState(DEFAULT_QUERY); // Define setQuery here
 

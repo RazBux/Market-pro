@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 # Path to the JSON file
-file_path = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/code/EDGAR/AppleCompanyFacts.json"
+file_path = "/Users/razbuxboim/Desktop/Raz-market-app/data_collection/code/EDGAR/ED_company_data/AAPL.json"
 
 
 # Function to calculate the duration between two dates

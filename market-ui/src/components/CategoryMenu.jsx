@@ -1,10 +1,75 @@
-// CategoryMenu.jsx
-import React, { useState } from 'react';
-import { useQuery } from '@apollo/client';
-import gql from 'graphql-tag';
-// import Select from 'react-select';
-import MySelect from './MySelect';
-import { useDarkModeContext } from '../contexts/DarkModeContext';
+// import React, { useState } from "react";
+// import { useQuery } from "@apollo/client";
+// import gql from "graphql-tag";
+// import MySelect from "./MySelect";
+// import { useDarkModeContext } from "../contexts/DarkModeContext";
+
+// const GET_CATEGORIES = gql`
+//   query GetCategories($tableName: String!) {
+//     tableColumns(tableName: $tableName) {
+//       columns
+//     }
+//   }
+// `;
+
+// function labelize(col) {
+//   return String(col).replaceAll("_", " ");
+// }
+
+// export default function CategoryMenu({ selectedTable, updateCategories }) {
+//   const { darkTheme } = useDarkModeContext();
+
+//   const { loading, error, data } = useQuery(GET_CATEGORIES, {
+//     variables: { tableName: selectedTable },
+//     skip: !selectedTable,
+//   });
+
+//   const [selectedOptions, setSelectedOptions] = useState([]);
+
+//   if (loading) return <p className="text-gray-500 dark:text-gray-400">Loading...</p>;
+//   if (error) return <p className="text-red-600">Error: {error.message}</p>;
+
+//   const options =
+//     data?.tableColumns?.columns
+//       ?.filter((c) => c !== "quarter")
+//       .map((c) => ({ label: labelize(c), value: c })) || [];
+
+//   const handleCategoryChange = (opts) => {
+//     setSelectedOptions(opts || []);
+//     // IMPORTANT: update immediately (no need submit)
+//     const categories = (opts || []).map((o) => o.value);
+//     updateCategories(categories);
+//   };
+
+//   return (
+//     <div className="max-w-xl">
+//       <h1 className="font-extrabold text-xl mb-2 text-gray-800 dark:text-gray-100">
+//         Categories
+//       </h1>
+
+//       <MySelect
+//         isMulti={true}
+//         options={options}
+//         value={selectedOptions}
+//         handleChange={handleCategoryChange}
+//         darkMode={darkTheme}
+//         closeMenuOnSelect={true}   // ✅ (4) close after each selection
+//       />
+
+//       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+//         Tip: select multiple metrics. Menu closes after each click (reopen to add more).
+//       </p>
+//     </div>
+//   );
+// }
+
+
+
+import React, { useMemo } from "react";
+import { useQuery } from "@apollo/client";
+import gql from "graphql-tag";
+import MySelect from "./MySelect";
+import { useDarkModeContext } from "../contexts/DarkModeContext";
 
 const GET_CATEGORIES = gql`
   query GetCategories($tableName: String!) {
@@ -14,55 +79,57 @@ const GET_CATEGORIES = gql`
   }
 `;
 
-const CategoryMenu = ({ selectedTable, updateCategories }) => {
+function labelize(col) {
+  return String(col).replaceAll("_", " ");
+}
+
+export default function CategoryMenu({ selectedTable, updateCategories, selectedCategories }) {
   const { darkTheme } = useDarkModeContext();
+
   const { loading, error, data } = useQuery(GET_CATEGORIES, {
     variables: { tableName: selectedTable },
     skip: !selectedTable,
   });
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const [, setSubmittedCategories] = useState([]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  const options = useMemo(() => {
+    const cols = data?.tableColumns?.columns || [];
+    return cols
+      .filter((c) => c !== "quarter")
+      .map((c) => ({ label: labelize(c), value: c }));
+  }, [data]);
 
-  const options = data.tableColumns.columns
-    .filter(category => category !== 'quarter')
-    .map(category => ({
-      label: category,
-      value: category,
-    }));
+  // Controlled select value from selectedCategories (so bundles/clear update UI)
+  const value = useMemo(() => {
+    const set = new Set(selectedCategories || []);
+    return options.filter((o) => set.has(o.value));
+  }, [options, selectedCategories]);
 
-  const handleCategoryChange = selectedOptions => {
-    setSelectedOptions(selectedOptions);
-  };
+  if (loading) return <p className="text-gray-500 dark:text-gray-400">Loading...</p>;
+  if (error) return <p className="text-red-600">Error: {error.message}</p>;
 
-  const handleButtonClick = () => {
-    const selectedCategories = selectedOptions.map(option => option.value);
-    if (selectedCategories.length === 0) {
-      // If there are no selected categories, show an alert
-      alert('Please select at least one category.');
-    } else {
-      // If there are selected categories, update and pass them to the parent
-      setSubmittedCategories(selectedCategories);
-      updateCategories(selectedCategories);
-    }
+  const handleCategoryChange = (opts) => {
+    const categories = (opts || []).map((o) => o.value);
+    updateCategories(categories);
   };
 
   return (
-    <div>
-      <h1 className='font-extrabold text-xl mb-1'>Categories</h1>
-      <MySelect isMulti={true} options={options} handleChange={handleCategoryChange} darkMode={darkTheme} />
+    <div className="max-w-xl">
+      <h1 className="font-extrabold text-xl mb-2 text-gray-800 dark:text-gray-100">
+        Categories
+      </h1>
 
-      <button
-        className="bg-blue-500 text-white font-semibold mt-2 mb-2 py-2 px-4 rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-gray-700 dark:hover:bg-gray-800"
-        onClick={handleButtonClick}
-      >
-        Submit
-      </button>
+      <MySelect
+        isMulti={true}
+        options={options}
+        value={value}
+        handleChange={handleCategoryChange}
+        darkMode={darkTheme}
+        closeMenuOnSelect={false}   // ✅ stays open
+      />
 
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+        Select multiple metrics. Menu stays open.
+      </p>
     </div>
   );
-};
-
-export default CategoryMenu;
+}

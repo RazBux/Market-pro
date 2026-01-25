@@ -28,12 +28,12 @@ def go(file_path):
 # ---------------------start--------------------
 if __name__ == "__main__":
     # Exsample of solar-edge, other companies need thier fine tuning...
-    url = "https://investors.solaredge.com/financial-information/quarterly-results"
+    # url = "https://investors.solaredge.com/financial-information/quarterly-results"
 
-    url = 'https://ir.monday.com/financials-and-filings/quarterly-results/default.aspx'
+    url = "https://ir.monday.com/financials-and-filings/quarterly-results/default.aspx"
     # html_content = data.write_html_content(website_url=url)
 
-    # filtered_file = data.read_html(url, html_content, ["static-files", "Supplemental Information"])
+    # filtered_file = data.read_html(url, html_content, ["doc_financials"])
     # print(filtered_file)
 
     # old_phrase = "https://investors.solaredge.com/financial-information/quarterly-results/static-files/"
@@ -41,8 +41,8 @@ if __name__ == "__main__":
 
     # filtered_file = data.manipulate_links(filtered_file, old_phrase, new_phrase)
 
-    output_file_path = '/Users/razbuxboim/Desktop/Raz-market-app/docs/monday/new_link.txt'
-    report_folder_path = data.download_pdf(output_file_path)
+    # output_file_path = '/Users/razbuxboim/Desktop/Raz-market-app/docs/monday/new_link.txt'
+    # report_folder_path = data.download_pdf(output_file_path)
 
     # # combain all the relevant pdf to one big file using text keyword to select only the desire ones
     # output_folder = exstract_combain.exstrac_page_by_txt(report_folder_path, "P&L GAAP")
@@ -53,4 +53,5 @@ if __name__ == "__main__":
 
     
     # file = "/Users/razbuxboim/Desktop/Raz-market-app/docs/monday/links.txt"
-    # go(file)
+    file = "/Users/razbuxboim/Desktop/Raz-market-app/docs/monday/monday_HtmlToText.txt"
+    go(file)

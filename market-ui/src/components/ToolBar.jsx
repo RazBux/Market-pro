@@ -87,6 +87,7 @@ const DarkModeIcon = ({ darkTheme, setDarkTheme }) => {
 };
 
 
+
 const MailIcon = () => {
     return (
         <IoIosMail size='40' className='dark:text-invert-negative-1' />
