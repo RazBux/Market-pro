@@ -23,6 +23,7 @@
     "start1": "sudo PORT=80 react-scripts start",
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:cloud": "CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
