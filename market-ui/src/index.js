@@ -13,8 +13,9 @@ import GetQueryData from "./components/QueryData";
 import { DarkModeProvider } from './contexts/DarkModeContext';
 import MarketToolbar from './components/MarketToolbar';
 
-const backendURL = "http://localhost:8000/graphql";
+// const backendURL = "http://localhost:8000/graphql";
 // const backendURL = "http://35.174.189.194:8000/graphql"; //for production
+const backendURL = "https://market-pro-server.onrender.com/graphql"; //render production
 
 // console.log("backendURL", backendURL);
 

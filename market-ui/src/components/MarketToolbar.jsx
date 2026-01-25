@@ -158,9 +158,9 @@ export default function MarketToolbar() {
         </div>
 
         <div className="sm:ml-auto flex flex-wrap gap-2 items-center">
-          <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">
+          {/* <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold">
             Table:
-          </span>
+          </span> */}
           <span className="px-2 py-1 rounded-lg bg-gray-50 border text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 text-xs sm:text-sm">
             {selectedTable}
           </span>
