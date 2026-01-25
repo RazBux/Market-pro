@@ -39,7 +39,8 @@ export default function MarketToolbar() {
   const { darkTheme, setDarkTheme } = useDarkModeContext();
 
   const [mode, setMode] = useState("chart"); // "chart" | "table"
-  const [selectedTable, setSelectedTable] = useState("monday");
+  // const [selectedTable, setSelectedTable] = useState("monday");
+  const [selectedTable, ] = useState("monday");
 
   const [selectedCategories, setSelectedCategories] = useState(["total_revenues"]);
   const [chartQuery, setChartQuery] = useState(DEFAULT_QUERY);
@@ -100,13 +101,13 @@ export default function MarketToolbar() {
     setMode("chart");
   };
 
-  const updateSelectedTable = (tableName) => {
-    setSelectedTable(tableName);
-    // reset chart to default for the new table
-    setSelectedCategories(["total_revenues"]);
-    setChartQuery(DEFAULT_QUERY);
-    setMode("chart");
-  };
+  // const updateSelectedTable = (tableName) => {
+  //   setSelectedTable(tableName);
+  //   // reset chart to default for the new table
+  //   setSelectedCategories(["total_revenues"]);
+  //   setChartQuery(DEFAULT_QUERY);
+  //   setMode("chart");
+  // };
 
   const updateCategories = (categories) => {
     setCategoriesAndQuery(categories);
