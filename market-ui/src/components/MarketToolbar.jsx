@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useQuery, gql } from "@apollo/client";
 
-import ToolBar from "./ToolBar";
+// import ToolBar from "./ToolBar";
 import CategoryMenu from "./CategoryMenu";
 import LineChart from "./LineChart";
 import DataTable from "./DataTable";

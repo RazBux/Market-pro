@@ -9,7 +9,7 @@ import {
   from,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
-import GetQueryData from "./components/QueryData";
+// import GetQueryData from "./components/QueryData";
 import { DarkModeProvider } from './contexts/DarkModeContext';
 import MarketToolbar from './components/MarketToolbar';
 
