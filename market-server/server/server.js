@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors'); // Import the cors middleware
 
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 app.use(bodyParser.json());
 
