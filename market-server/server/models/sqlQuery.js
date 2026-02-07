@@ -1,18 +1,16 @@
 const sqlite3 = require('sqlite3').verbose(); // Import the sqlite3 package
-// const db = new sqlite3.Database('../market-server/docs/market-pro.db');
-const db = new sqlite3.Database('./docs/market-pro.db');
+const db = new sqlite3.Database('./docs/income_statements.sqlite'); // 
 
-//retrive all the column from the specific table.
+//retrieve all the column from the specific table.
 function getTableColumns({ tableName }) {
   return new Promise((resolve, reject) => {
     const query = `PRAGMA table_info(${tableName});`;
 
     db.all(query, (err, rows) => {
       if (err) {
+        console.error(`Error getting columns for ${tableName}:`, err);
         reject(err);
       } else {
-
-
         const columns = rows.map(row => row.name);
         console.log(`${tableName} columns:`, JSON.stringify(columns, null, 2));
         resolve(columns);
@@ -21,18 +19,19 @@ function getTableColumns({ tableName }) {
   });
 }
 
-// get all table and thier columns from a db.
+// get all table and their columns from a db.
 function getAllTableAndThierColumns() {
   return new Promise((resolve, reject) => {
     const query = "SELECT name FROM sqlite_master WHERE type='table';";
 
     db.all(query, async (err, tables) => {
       if (err) {
+        console.error('Error getting tables:', err);
         reject(err);
         return;
       }
 
-      const tableColumnsPromises = tables.map(table => getTableColumns(table.name));
+      const tableColumnsPromises = tables.map(table => getTableColumns({ tableName: table.name }));
       const tableColumns = await Promise.all(tableColumnsPromises);
 
       const result = {};
@@ -52,52 +51,63 @@ function getAllTableNames() {
 
     db.all(query, (err, tables) => {
       if (err) {
+        console.error('Error getting table names:', err);
         reject(err);
         return;
       }
       const tableNames = tables.map(table => table.name);
-      console.log(`table names: \n${tableNames}`)
+      console.log(`Table names: ${tableNames.join(', ')}`);
       resolve(tableNames);
     });
   });
 }
 
 
+// ✅ IMPROVED: Better error handling and logging
 function getDataByQuery(sqlQuery) {
-
-  console.log(`sql query: ${sqlQuery}`);
-  // Execute the query using async/await
+  console.log(`📊 Executing SQL query: ${sqlQuery}`);
+  
   return new Promise((resolve, reject) => {
     db.all(sqlQuery, (err, rows) => {
       if (err) {
+        console.error('❌ SQL Query Error:', err.message);
+        console.error('Query was:', sqlQuery);
         reject(err);
         return;
       }
+      
       const data = rows.map(row => ({ ...row }));
-      // console.log(`Run query: ${sqlQuery}`);
-      // console.log(rows);
-      console.log(`resolve data:`);
-      console.log(data);
+      console.log(`✅ Query returned ${data.length} rows`);
+      
+      // Only log first row to avoid console spam
+      if (data.length > 0) {
+        console.log('First row sample:', data[0]);
+      }
 
       resolve(data);
     });
   });
 }
 
-function create_sql_query({ tableName, columnList }) {
+// ✅ IMPROVED: Added limit support
+function create_sql_query({ tableName, columnList, limit }) {
   // Ensure columnList is an array
-  // console.log(Array.isArray(columnList));
-
   var columns;
   if (columnList) {
     columns = Array.isArray(columnList) && columnList.length > 0 ? columnList.join(', ') : '*';
-  }
-  else {
+  } else {
     columns = "*";
   }
-  // console.log(`column: ${columns}`);
+  
   // Create the SQL query string
-  const query = `SELECT ${columns} FROM ${tableName};`;
+  let query = `SELECT ${columns} FROM ${tableName}`;
+  
+  // ✅ NEW: Add LIMIT if provided
+  if (limit) {
+    query += ` LIMIT ${limit}`;
+  }
+  
+  query += ';';
 
   return getDataByQuery(query);
 }
@@ -112,30 +122,37 @@ module.exports = {
 };
 
 
+/* ===== TESTING EXAMPLES =====
 
-// ----to run all the query
-// Example usage
-// getAllTableColumns()
-//     .then(columnsByTable => {
-//         console.log('Columns by table:', columnsByTable);
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//     });
+// Test getting all table names
+getAllTableNames()
+  .then(tableNames => {
+    console.log('Table names:', tableNames);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
 
-// getAllTableNames()
-//     .then(tableNames => {
-//         console.log('Table names:', tableNames);
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//     });
+// Test getting columns
+getTableColumns({ tableName: 'income_statement_AAPL_quarterly' })
+  .then(columns => {
+    console.log('Columns:', columns);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
 
-// var q = "SELECT quarter, total_revenues FROM tesla;"
-// let e = getDataByQuery(q);
-// console.log(e);
-// const sqlQuery = "SELECT quarter, total_revenues FROM tesla";
-// getDataByQuery(sqlQuery)
-//     .then(tableNames => {
-//         console.log('Table names:', tableNames);
-//     })
+// Test creating and executing a query
+create_sql_query({ 
+  tableName: 'income_statement_AAPL_quarterly',
+  columnList: ['fiscalDateEnding', 'totalRevenue', 'netIncome'],
+  limit: '5'
+})
+  .then(data => {
+    console.log('Data:', data);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+
+*/

@@ -1,71 +1,38 @@
-// // const express = require('express');
-// // const expressGraphQL = require('express-graphql').graphqlHTTP;
-// // const schema = require('./schema/schema');
-// // const bodyParser = require('body-parser');
-// // const cors = require('cors'); // Import the cors middleware
-
-// // const app = express();
-// // const PORT = process.env.PORT || 8000;
-
-// // app.use(bodyParser.json());
-
-// // // Enable CORS for all routes
-// // app.use(cors());
-
-// // // Use graphqlHTTP middleware to handle GraphQL requests
-// // app.use('/graphql', expressGraphQL({
-// //     schema: schema,
-// //     graphiql: true
-// // }));
-
-// // app.listen(PORT, () => {
-// //     console.log(`Server is running on port ${PORT}`);
-// // });
- 
-// // // module.exports = app;
-
-
 // const express = require("express");
 // const { graphqlHTTP } = require("express-graphql");
 // const schema = require("./schema/schema");
 // const cors = require("cors");
 
 // const app = express();
+// app.set("trust proxy", 1);
+
 // const PORT = process.env.PORT || 8000;
 
-// /**
-//  * CORS FIRST (before /graphql)
-//  * allow local dev + production later
-//  */
 // const corsOptions = {
 //   origin: [
 //     "http://localhost:3000",
 //     "http://127.0.0.1:3000",
 //     "https://market-front.raz12386.workers.dev",
-//     // add your deployed frontend later:
-//     // "https://your-frontend.onrender.com",
-//     // "https://your-frontend.vercel.app",
+//     // "https://YOUR_PROJECT.pages.dev",
+//     // "https://YOUR_CUSTOM_DOMAIN.com",
 //   ],
 //   methods: ["GET", "POST", "OPTIONS"],
 //   allowedHeaders: ["Content-Type", "Authorization"],
-//   credentials: false, // set true only if you really use cookies
+//   credentials: false,
 // };
 
-// // enable CORS + preflight
 // app.use(cors(corsOptions));
-// app.options("*", cors(corsOptions)); // handles preflight requests
+// app.options("*", cors(corsOptions));
 
-// // (body parsing) - express has built-in json
 // app.use(express.json());
 
-// // simple health check
 // app.get("/", (req, res) => res.send("OK"));
 
 // app.use(
 //   "/graphql",
 //   graphqlHTTP({
 //     schema,
-//     graphiql: true,
+//     graphiql: process.env.NODE_ENV !== "production",
 //   })
 // );
 
@@ -85,34 +52,74 @@ app.set("trust proxy", 1);
 
 const PORT = process.env.PORT || 8000;
 
+// ✅ UPDATED: Added localhost:3000 for your React app
 const corsOptions = {
   origin: [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://market-front.raz12386.workers.dev",
+    "http://localhost:3000",           // ✅ Your React app (development)
+    "http://127.0.0.1:3000",          // ✅ Alternative localhost
+    "http://localhost:3001",           // ✅ In case React runs on 3001
+    "https://market-front.raz12386.workers.dev", // Your production frontend
+    // Add more as needed:
     // "https://YOUR_PROJECT.pages.dev",
     // "https://YOUR_CUSTOM_DOMAIN.com",
   ],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: false,
+  credentials: false, // Set to true if you need cookies/auth
 };
 
+// Enable CORS for all routes
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle preflight requests
 
+// Parse JSON bodies
 app.use(express.json());
 
-app.get("/", (req, res) => res.send("OK"));
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({ 
+    status: "OK", 
+    message: "GraphQL server is running",
+    endpoints: {
+      graphql: "/graphql",
+      graphiql: "/graphql (open in browser)"
+    }
+  });
+});
 
+// ✅ UPDATED: Always enable GraphiQL for development
 app.use(
   "/graphql",
   graphqlHTTP({
     schema,
-    graphiql: process.env.NODE_ENV !== "production",
+    graphiql: true, // ✅ CHANGED: Always enabled for development (set to false in production)
+    // ✅ ADDED: Better error reporting
+    customFormatErrorFn: (error) => ({
+      message: error.message,
+      locations: error.locations,
+      path: error.path,
+    })
   })
 );
 
+// ✅ ADDED: Better startup logging
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log('='.repeat(60));
+  console.log('🚀 GraphQL Server is running!');
+  console.log('='.repeat(60));
+  console.log(`📍 Server URL:        http://localhost:${PORT}`);
+  console.log(`🔍 GraphiQL UI:       http://localhost:${PORT}/graphql`);
+  console.log(`💻 Environment:       ${process.env.NODE_ENV || 'development'}`);
+  console.log('='.repeat(60));
+  console.log('✅ CORS enabled for:');
+  corsOptions.origin.forEach(origin => console.log(`   - ${origin}`));
+  console.log('='.repeat(60));
 });
+
+// ✅ ADDED: Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n👋 Shutting down gracefully...');
+  process.exit(0);
+});
+
+module.exports = app;
