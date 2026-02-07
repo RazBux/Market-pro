@@ -11,11 +11,11 @@ import {
 import { onError } from "@apollo/client/link/error";
 // import GetQueryData from "./components/QueryData";
 import { DarkModeProvider } from './contexts/DarkModeContext';
-import MarketToolbar from './components/MarketToolbar';
+// import MarketToolbar from './components/MarketToolbar';
+import FinancialDashboard from './components/FinancialDashboard';
 
-// const backendURL = "http://localhost:8000/graphql";
-// const backendURL = "http://35.174.189.194:8000/graphql"; //for production
-const backendURL = "https://market-pro-server.onrender.com/graphql"; //render production
+const backendURL = "http://localhost:8000/graphql";
+// const backendURL = "https://market-pro-server.onrender.com/graphql"; //render production
 
 // console.log("backendURL", backendURL);
 
@@ -44,8 +44,8 @@ root.render(
     <ApolloProvider client={client} >
       <div className='flex flex-col min-h-screen bg-neutral-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200 '>
         <DarkModeProvider> {/* the Dark mode for accsessing the values from all over the app */}
-          {/* <GetQueryData /> */}
-          <MarketToolbar/>
+          {/* <MarketToolbar/> */}
+          <FinancialDashboard />
         </DarkModeProvider>
       </div>
     </ApolloProvider>
