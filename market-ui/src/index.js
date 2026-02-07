@@ -14,8 +14,8 @@ import { DarkModeProvider } from './contexts/DarkModeContext';
 // import MarketToolbar from './components/MarketToolbar';
 import FinancialDashboard from './components/FinancialDashboard';
 
-const backendURL = "http://localhost:8000/graphql";
-// const backendURL = "https://market-pro-server.onrender.com/graphql"; //render production
+// const backendURL = "http://localhost:8000/graphql";
+const backendURL = "https://market-pro-server.onrender.com/graphql"; //render production
 
 // console.log("backendURL", backendURL);
 
