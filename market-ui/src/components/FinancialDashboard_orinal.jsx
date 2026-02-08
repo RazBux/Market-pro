@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
-import AnalysisView from './Analysisview';
 
 // ===== GRAPHQL QUERIES =====
 
@@ -222,13 +221,6 @@ export default function FinancialDashboard() {
                     limit={getActualLimit()}
                 />
             )}
-            
-            {view === 'analysis' && (
-                <AnalysisView 
-                    darkTheme={darkTheme}
-                    selectedCompany={selectedCompany}
-                />
-            )}
         </div>
     );
 }
@@ -263,8 +255,7 @@ const companies = [
     const tabs = [
         { id: 'overview', label: '📊 Overview' },
         { id: 'detailed', label: '📈 Detailed' },
-        { id: 'comparison', label: '⚖️ Compare' },
-        { id: 'analysis', label: 'analysis' }
+        { id: 'comparison', label: '⚖️ Compare' }
     ];
 
     return (
@@ -335,13 +326,13 @@ const companies = [
                 )}
 
                 {/* Dark Mode Toggle */}
-                {/* <button
+                <button
                     onClick={() => setDarkTheme(!darkTheme)}
                     style={darkTheme ? styles.darkModeToggleDark : styles.darkModeToggle}
                     title={darkTheme ? "Switch to light mode" : "Switch to dark mode"}
                 >
                     {darkTheme ? '☀️' : '🌙'}
-                </button> */}
+                </button>
             </div>
         </div>
     );
@@ -1099,6 +1090,121 @@ function ComparisonView({ darkTheme, period, selectedCompanies, setSelectedCompa
         </div>
     );
 }
+
+// old
+// ===== COMPARISON VIEW =====
+
+// function ComparisonView({ darkTheme, period, selectedCompanies, setSelectedCompanies, limit }) {
+//     const companies = ['AAPL', 'ENPH', 'MNDY', 'SEDG'];
+//     const [comparisonMetric, setComparisonMetric] = useState('revenue');
+
+//     const metricOptions = [
+//         { id: 'revenue', label: 'Revenue Analysis' },
+//         { id: 'profitability', label: 'Profitability' },
+//         { id: 'margins', label: 'Margin Comparison' },
+//         { id: 'growth', label: 'Growth Rates' },
+//         { id: 'efficiency', label: 'Operational Efficiency' }
+//     ];
+
+//     const toggleCompany = (company) => {
+//         if (selectedCompanies.includes(company)) {
+//             if (selectedCompanies.length > 1) {
+//                 setSelectedCompanies(selectedCompanies.filter(c => c !== company));
+//             }
+//         } else {
+//             setSelectedCompanies([...selectedCompanies, company]);
+//         }
+//     };
+
+//     return (
+//         <div style={darkTheme ? styles.comparisonContainerDark : styles.comparisonContainer}>
+//             <h2 style={darkTheme ? styles.sectionTitleDark : styles.sectionTitle}>
+//                 ⚖️ Company Comparison Analysis
+//             </h2>
+
+//             {/* Company Selection */}
+//             <div style={{ marginBottom: '24px' }}>
+//                 <div style={{ 
+//                     fontSize: '0.875rem', 
+//                     color: darkTheme ? '#94a3b8' : '#6b7280',
+//                     marginBottom: '12px',
+//                     fontWeight: '500'
+//                 }}>
+//                     Select Companies to Compare (min 2):
+//                 </div>
+//                 <div style={styles.companyButtons}>
+//                     {companies.map(company => (
+//                         <button
+//                             key={company}
+//                             onClick={() => toggleCompany(company)}
+//                             style={{
+//                                 ...(darkTheme ? styles.companyButtonDark : styles.companyButton),
+//                                 ...(selectedCompanies.includes(company) 
+//                                     ? (darkTheme ? styles.companyButtonActiveDark : styles.companyButtonActive) 
+//                                     : {})
+//                             }}
+//                         >
+//                             {getCompanyName(company)}
+//                         </button>
+//                     ))}
+//                 </div>
+//             </div>
+
+//             {/* Metric Selection */}
+//             <div style={{ marginBottom: '24px' }}>
+//                 <div style={{ 
+//                     fontSize: '0.875rem', 
+//                     color: darkTheme ? '#94a3b8' : '#6b7280',
+//                     marginBottom: '12px',
+//                     fontWeight: '500'
+//                 }}>
+//                     Comparison Type:
+//                 </div>
+//                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+//                     {metricOptions.map(option => (
+//                         <button
+//                             key={option.id}
+//                             onClick={() => setComparisonMetric(option.id)}
+//                             style={{
+//                                 ...(darkTheme ? styles.companyButtonDark : styles.companyButton),
+//                                 ...(comparisonMetric === option.id 
+//                                     ? (darkTheme ? styles.companyButtonActiveDark : styles.companyButtonActive) 
+//                                     : {})
+//                             }}
+//                         >
+//                             {option.label}
+//                         </button>
+//                     ))}
+//                 </div>
+//             </div>
+
+//             {/* Comparison Grid */}
+//             <div style={styles.comparisonGrid}>
+//                 {selectedCompanies.map(company => (
+//                     <CompanyComparisonCard
+//                         key={company}
+//                         company={company}
+//                         period={period}
+//                         darkTheme={darkTheme}
+//                         metric={comparisonMetric}
+//                         limit={limit}
+//                     />
+//                 ))}
+//             </div>
+
+//             {/* Relative Performance Section */}
+//             {selectedCompanies.length > 1 && (
+//                 <RelativePerformance
+//                     companies={selectedCompanies}
+//                     period={period}
+//                     darkTheme={darkTheme}
+//                     metric={comparisonMetric}
+//                     limit={limit}
+//                 />
+//             )}
+//         </div>
+//     );
+// }
 
 function CompanyComparisonCard({ company, period, darkTheme, metric, limit }) {
     const tableName = `income_statement_${company}_${period}`;
