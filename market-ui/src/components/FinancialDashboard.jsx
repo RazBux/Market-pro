@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import AnalysisView from './Analysisview';
+import CompanySearch from './CompanySearch';
 
 // ===== GRAPHQL QUERIES =====
 
@@ -11,22 +12,6 @@ const GET_FINANCIAL_DATA = gql`
     }
   }
 `;
-
-// const GET_ALL_TABLES = gql`
-//   query GetAllTables {
-//     tables {
-//       tables
-//     }
-//   }
-// `;
-
-// const COMPARE_COMPANIES = gql`
-//   query CompareCompanies($companies: [String!]!, $period: String!, $columns: [String!]!) {
-//     compareCompanies(companies: $companies, period: $period, columns: $columns) {
-//       data
-//     }
-//   }
-// `;
 
 // ===== UTILITY FUNCTIONS =====
 
@@ -45,16 +30,6 @@ const formatCurrency = (value) => {
     return `$${num.toLocaleString()}`;
 };
 
-// const formatPercentage = (value) => {
-//     if (!value || value === 'None' || value === null || isNaN(value)) return '0%';
-//     return `${parseFloat(value).toFixed(2)}%`;
-// };
-
-// const parseValue = (value) => {
-//     if (!value || value === 'None' || value === null) return 0;
-//     return parseFloat(value) / 1000000; // Convert to millions
-// };
-
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -62,16 +37,6 @@ const formatDate = (dateStr) => {
     const year = date.getFullYear();
     return `${month} ${year}`;
 };
-
-// const getCompanyName = (symbol) => {
-//     const names = {
-//         AAPL: 'Apple Inc.',
-//         ENPH: 'Enphase Energy',
-//         MNDY: 'Monday.com',
-//         SEDG: 'SolarEdge Technologies'
-//     };
-//     return names[symbol] || symbol;
-// };
 
 const getCompanyName = (symbol) => {
     const names = {
@@ -115,28 +80,35 @@ const calculateCAGR = (data, field) => {
     return (Math.pow(endValue / startValue, 1 / periods) - 1) * 100;
 };
 
+const calculateVolatility = (data, field) => {
+    if (data.length < 2) return 0;
+    const values = data.map(d => parseFloat(d[field]) || 0);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const stdDev = Math.sqrt(variance);
+    return (stdDev / mean) * 100;
+};
+
 // ===== MAIN COMPONENT =====
 
 export default function FinancialDashboard() {
-    const [darkTheme, setDarkTheme] = useState(true); // Default to dark mode
+    const [darkTheme, setDarkTheme] = useState(true);
     const [selectedCompany, setSelectedCompany] = useState('AAPL');
     const [period, setPeriod] = useState('quarterly');
-    const [limitType, setLimitType] = useState('all'); // 'all', '4', '8', '20', 'custom'
+    const [limitType, setLimitType] = useState('all');
     const [customLimit, setCustomLimit] = useState('12');
     const [view, setView] = useState('overview');
-    const [profitabilityView, setProfitabilityView] = useState('margins'); // 'margins', 'efficiency', 'returns'
+    const [profitabilityView, setProfitabilityView] = useState('margins');
     const [selectedCompanies, setSelectedCompanies] = useState(['AAPL', 'ENPH']);
 
-    // Calculate actual limit to use
     const getActualLimit = () => {
-        if (limitType === 'all') return '1000'; // Large number to get all available
+        if (limitType === 'all') return '1000';
         if (limitType === 'custom') return customLimit;
         return limitType;
     };
 
     const tableName = `income_statement_${selectedCompany}_${period}`;
 
-    // Columns to fetch - only using columns that exist in the database
     const columns = [
         "symbol",
         "fiscalDateEnding",
@@ -161,6 +133,14 @@ export default function FinancialDashboard() {
     useEffect(() => {
         refetch();
     }, [selectedCompany, period, limitType, customLimit, refetch]);
+
+    const handleCompanyAdded = (symbol) => {
+        console.log(`New company added: ${symbol}`);
+        setSelectedCompany(symbol);
+        setTimeout(() => {
+            refetch();
+        }, 1000);
+    };
 
     if (loading) return <LoadingScreen darkTheme={darkTheme} />;
 
@@ -192,6 +172,7 @@ export default function FinancialDashboard() {
                 setDarkTheme={setDarkTheme}
                 view={view}
                 setView={setView}
+                onCompanyAdded={handleCompanyAdded}
             />
 
             {view === 'overview' && (
@@ -206,15 +187,15 @@ export default function FinancialDashboard() {
             )}
 
             {view === 'detailed' && (
-                <DetailedView 
-                    financialData={financialData} 
+                <DetailedView
+                    financialData={financialData}
                     darkTheme={darkTheme}
                     columns={columns}
                 />
             )}
 
             {view === 'comparison' && (
-                <ComparisonView 
+                <ComparisonView
                     darkTheme={darkTheme}
                     period={period}
                     selectedCompanies={selectedCompanies}
@@ -222,9 +203,9 @@ export default function FinancialDashboard() {
                     limit={getActualLimit()}
                 />
             )}
-            
+
             {view === 'analysis' && (
-                <AnalysisView 
+                <AnalysisView
                     darkTheme={darkTheme}
                     selectedCompany={selectedCompany}
                 />
@@ -235,18 +216,12 @@ export default function FinancialDashboard() {
 
 // ===== SUB-COMPONENTS =====
 
-function ControlPanel({ 
-    selectedCompany, setSelectedCompany, period, setPeriod, 
+function ControlPanel({
+    selectedCompany, setSelectedCompany, period, setPeriod,
     limitType, setLimitType, customLimit, setCustomLimit,
-    darkTheme, setDarkTheme, view, setView 
+    darkTheme, setDarkTheme, view, setView, onCompanyAdded
 }) {
-// const companies = [
-//     { value: 'AAPL', label: '🍎 Apple Inc.' },
-//     { value: 'ENPH', label: '⚡ Enphase Energy' },
-//     { value: 'MNDY', label: '💼 Monday.com' },
-//     { value: 'SEDG', label: '☀️ SolarEdge' },
-// ];
-const companies = [
+    const companies = [
         { value: 'AAPL', label: '🍎 Apple' },
         { value: 'MSFT', label: '💻 Microsoft' },
         { value: 'GOOG', label: '🔍 Google' },
@@ -264,12 +239,11 @@ const companies = [
         { id: 'overview', label: '📊 Overview' },
         { id: 'detailed', label: '📈 Detailed' },
         { id: 'comparison', label: '⚖️ Compare' },
-        { id: 'analysis', label: 'analysis' }
+        { id: 'analysis', label: '🔬 Analysis' }
     ];
 
     return (
         <div style={darkTheme ? styles.unifiedToolbarDark : styles.unifiedToolbar}>
-            {/* Left Side - View Tabs */}
             <div style={styles.toolbarLeft}>
                 {tabs.map(tab => (
                     <button
@@ -285,9 +259,13 @@ const companies = [
                 ))}
             </div>
 
-            {/* Right Side - Controls */}
             <div style={styles.toolbarRight}>
-                {/* Company Selector */}
+                {/* ✅ NEW: Company Search Component */}
+                <CompanySearch
+                    darkTheme={darkTheme}
+                    onCompanyAdded={onCompanyAdded}
+                />
+
                 <select
                     value={selectedCompany}
                     onChange={(e) => setSelectedCompany(e.target.value)}
@@ -298,7 +276,6 @@ const companies = [
                     ))}
                 </select>
 
-                {/* Period Selector */}
                 <select
                     value={period}
                     onChange={(e) => setPeriod(e.target.value)}
@@ -308,7 +285,6 @@ const companies = [
                     <option value="annual">📆 Annual</option>
                 </select>
 
-                {/* Limit Type Selector */}
                 <select
                     value={limitType}
                     onChange={(e) => setLimitType(e.target.value)}
@@ -321,7 +297,6 @@ const companies = [
                     <option value="custom">Custom...</option>
                 </select>
 
-                {/* Custom Limit Input */}
                 {limitType === 'custom' && (
                     <input
                         type="number"
@@ -335,23 +310,25 @@ const companies = [
                 )}
 
                 {/* Dark Mode Toggle */}
-                {/* <button
+                <button
                     onClick={() => setDarkTheme(!darkTheme)}
                     style={darkTheme ? styles.darkModeToggleDark : styles.darkModeToggle}
                     title={darkTheme ? "Switch to light mode" : "Switch to dark mode"}
                 >
                     {darkTheme ? '☀️' : '🌙'}
-                </button> */}
+                </button>
             </div>
         </div>
     );
 }
+
 
 // ===== OVERVIEW VIEW =====
 
 function OverviewView({ latestData, financialData, company, darkTheme, profitabilityView, setProfitabilityView }) {
     return (
         <div>
+            
             <div style={styles.metricsGrid}>
                 <MetricCard
                     title="Total Revenue"
@@ -389,8 +366,8 @@ function OverviewView({ latestData, financialData, company, darkTheme, profitabi
 
             <div style={styles.chartsContainer}>
                 <RevenueChart data={financialData} darkTheme={darkTheme} />
-                <ProfitabilityAnalysis 
-                    data={financialData} 
+                <ProfitabilityAnalysis
+                    data={financialData}
                     latestData={latestData}
                     darkTheme={darkTheme}
                     view={profitabilityView}
@@ -407,7 +384,7 @@ function MetricCard({ title, value, trend, color, icon, darkTheme }) {
     const isPositive = trend >= 0;
 
     return (
-        <div 
+        <div
             style={darkTheme ? styles.metricCardDark : styles.metricCard}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
             onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
@@ -422,7 +399,7 @@ function MetricCard({ title, value, trend, color, icon, darkTheme }) {
                 {formatCurrency(value)}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ 
+                <span style={{
                     color: isPositive ? '#10b981' : '#ef4444',
                     fontSize: '0.875rem',
                     fontWeight: '600'
@@ -450,7 +427,7 @@ function RevenueChart({ data, darkTheme }) {
             </h3>
 
             {/* Chart Info */}
-            <div style={{ 
+            <div style={{
                 marginBottom: '16px',
                 padding: '12px',
                 background: darkTheme ? '#0f172a' : '#f9fafb',
@@ -509,8 +486,8 @@ function RevenueChart({ data, darkTheme }) {
                                     style={{
                                         height: '100%',
                                         width: `${percentage}%`,
-                                        background: isPositiveGrowth 
-                                            ? 'linear-gradient(90deg, #10b981, #34d399)' 
+                                        background: isPositiveGrowth
+                                            ? 'linear-gradient(90deg, #10b981, #34d399)'
                                             : 'linear-gradient(90deg, #3b82f6, #60a5fa)',
                                         borderRadius: '6px',
                                         transition: 'width 0.3s ease',
@@ -541,8 +518,8 @@ function RevenueChart({ data, darkTheme }) {
                                     textAlign: 'left'
                                 }}>
                                     {isPositiveGrowth ? '↑' : '↓'} {Math.abs(
-                                        ((revenue - parseFloat(displayData[index - 1].totalRevenue || 0)) / 
-                                        parseFloat(displayData[index - 1].totalRevenue || 1)) * 100
+                                        ((revenue - parseFloat(displayData[index - 1].totalRevenue || 0)) /
+                                            parseFloat(displayData[index - 1].totalRevenue || 1)) * 100
                                     ).toFixed(1)}%
                                 </div>
                             )}
@@ -632,30 +609,30 @@ function ProfitabilityAnalysis({ data, latestData, darkTheme, view, setView }) {
 
             {view === 'margins' && (
                 <div style={styles.metricsContainer}>
-                    <ProfitMetric 
-                        label="Gross Margin" 
-                        value={grossMargin} 
+                    <ProfitMetric
+                        label="Gross Margin"
+                        value={grossMargin}
                         color="#10b981"
                         darkTheme={darkTheme}
                         description="Revenue after COGS"
                     />
-                    <ProfitMetric 
-                        label="Operating Margin" 
-                        value={operatingMargin} 
+                    <ProfitMetric
+                        label="Operating Margin"
+                        value={operatingMargin}
                         color="#3b82f6"
                         darkTheme={darkTheme}
                         description="Operational efficiency"
                     />
-                    <ProfitMetric 
-                        label="Net Margin" 
-                        value={netMargin} 
+                    <ProfitMetric
+                        label="Net Margin"
+                        value={netMargin}
                         color="#8b5cf6"
                         darkTheme={darkTheme}
                         description="Bottom line profitability"
                     />
-                    <ProfitMetric 
-                        label="EBITDA Margin" 
-                        value={ebitdaMargin} 
+                    <ProfitMetric
+                        label="EBITDA Margin"
+                        value={ebitdaMargin}
                         color="#f59e0b"
                         darkTheme={darkTheme}
                         description="Cash generation capability"
@@ -665,31 +642,31 @@ function ProfitabilityAnalysis({ data, latestData, darkTheme, view, setView }) {
 
             {view === 'efficiency' && (
                 <div style={styles.metricsContainer}>
-                    <ProfitMetric 
-                        label="Operating Expense %" 
-                        value={opexRatio} 
+                    <ProfitMetric
+                        label="Operating Expense %"
+                        value={opexRatio}
                         color="#f97316"
                         darkTheme={darkTheme}
                         description="Operating costs efficiency"
                         inverse={true}
                     />
-                    <ProfitMetric 
-                        label="R&D Investment %" 
-                        value={rdRatio} 
+                    <ProfitMetric
+                        label="R&D Investment %"
+                        value={rdRatio}
                         color="#06b6d4"
                         darkTheme={darkTheme}
                         description="Innovation investment"
                     />
-                    <ProfitMetric 
-                        label="Operating Margin %" 
-                        value={operatingMargin} 
+                    <ProfitMetric
+                        label="Operating Margin %"
+                        value={operatingMargin}
                         color="#8b5cf6"
                         darkTheme={darkTheme}
                         description="Operating profitability"
                     />
-                    <ProfitMetric 
-                        label="Gross Margin %" 
-                        value={grossMargin} 
+                    <ProfitMetric
+                        label="Gross Margin %"
+                        value={grossMargin}
                         color="#10b981"
                         darkTheme={darkTheme}
                         description="Gross profitability"
@@ -699,31 +676,31 @@ function ProfitabilityAnalysis({ data, latestData, darkTheme, view, setView }) {
 
             {view === 'returns' && (
                 <div style={styles.metricsContainer}>
-                    <ProfitMetric 
-                        label="Net Profit Margin" 
-                        value={netMargin} 
+                    <ProfitMetric
+                        label="Net Profit Margin"
+                        value={netMargin}
                         color="#10b981"
                         darkTheme={darkTheme}
                         description="Net profit efficiency"
                     />
-                    <ProfitMetric 
-                        label="Gross Profit Margin" 
-                        value={grossMargin} 
+                    <ProfitMetric
+                        label="Gross Profit Margin"
+                        value={grossMargin}
                         color="#3b82f6"
                         darkTheme={darkTheme}
                         description="Gross profit efficiency"
                     />
-                    <ProfitMetric 
-                        label="Operating Leverage" 
-                        value={(parseFloat(latestData.operatingIncome) / parseFloat(latestData.operatingExpenses || 1)).toFixed(2)} 
+                    <ProfitMetric
+                        label="Operating Leverage"
+                        value={(parseFloat(latestData.operatingIncome) / parseFloat(latestData.operatingExpenses || 1)).toFixed(2)}
                         color="#8b5cf6"
                         darkTheme={darkTheme}
                         description="Operating profit vs expenses"
                         isRatio={true}
                     />
-                    <ProfitMetric 
-                        label="EBITDA Coverage" 
-                        value={(parseFloat(latestData.ebitda) / parseFloat(latestData.operatingExpenses || 1)).toFixed(2)} 
+                    <ProfitMetric
+                        label="EBITDA Coverage"
+                        value={(parseFloat(latestData.ebitda) / parseFloat(latestData.operatingExpenses || 1)).toFixed(2)}
                         color="#f59e0b"
                         darkTheme={darkTheme}
                         description="Cash coverage of operations"
@@ -734,30 +711,30 @@ function ProfitabilityAnalysis({ data, latestData, darkTheme, view, setView }) {
 
             {view === 'trends' && (
                 <div style={styles.metricsContainer}>
-                    <ProfitMetric 
-                        label="Revenue CAGR" 
-                        value={revenueCAGR} 
+                    <ProfitMetric
+                        label="Revenue CAGR"
+                        value={revenueCAGR}
                         color="#10b981"
                         darkTheme={darkTheme}
                         description="Compound annual growth rate"
                     />
-                    <ProfitMetric 
-                        label="Net Income CAGR" 
-                        value={netIncomeCAGR} 
+                    <ProfitMetric
+                        label="Net Income CAGR"
+                        value={netIncomeCAGR}
                         color="#3b82f6"
                         darkTheme={darkTheme}
                         description="Profit growth trajectory"
                     />
-                    <ProfitMetric 
-                        label="Gross Profit CAGR" 
-                        value={grossProfitCAGR} 
+                    <ProfitMetric
+                        label="Gross Profit CAGR"
+                        value={grossProfitCAGR}
                         color="#8b5cf6"
                         darkTheme={darkTheme}
                         description="Core profitability growth"
                     />
-                    <ProfitMetric 
-                        label="Margin Trend" 
-                        value={calculateTrend(data, 'netIncome') - calculateTrend(data, 'totalRevenue')} 
+                    <ProfitMetric
+                        label="Margin Trend"
+                        value={calculateTrend(data, 'netIncome') - calculateTrend(data, 'totalRevenue')}
                         color="#f59e0b"
                         darkTheme={darkTheme}
                         description="Profitability improvement"
@@ -782,33 +759,33 @@ function ProfitMetric({ label, value, color, darkTheme, description, inverse = f
             padding: '16px',
             transition: 'all 0.2s'
         }}
-        onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = color;
-            e.currentTarget.style.transform = 'scale(1.02)';
-        }}
-        onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = darkTheme ? '#334155' : '#e5e7eb';
-            e.currentTarget.style.transform = 'scale(1)';
-        }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = color;
+                e.currentTarget.style.transform = 'scale(1.02)';
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = darkTheme ? '#334155' : '#e5e7eb';
+                e.currentTarget.style.transform = 'scale(1)';
+            }}
         >
-            <div style={{ 
-                fontSize: '0.875rem', 
+            <div style={{
+                fontSize: '0.875rem',
                 color: darkTheme ? '#94a3b8' : '#6b7280',
                 marginBottom: '8px',
                 fontWeight: '500'
             }}>
                 {label}
             </div>
-            <div style={{ 
-                fontSize: '1.75rem', 
+            <div style={{
+                fontSize: '1.75rem',
                 fontWeight: '700',
                 color: color,
                 marginBottom: '4px'
             }}>
                 {displayValue}
             </div>
-            <div style={{ 
-                fontSize: '0.75rem', 
+            <div style={{
+                fontSize: '0.75rem',
                 color: darkTheme ? '#64748b' : '#9ca3af',
                 lineHeight: '1.2'
             }}>
@@ -830,34 +807,34 @@ function QuickStats({ data, latestData, darkTheme }) {
                 📊 Period Statistics
             </h3>
             <div style={styles.statsGrid}>
-                <StatItem 
-                    label="Average Revenue" 
-                    value={formatCurrency(avgRevenue)} 
+                <StatItem
+                    label="Average Revenue"
+                    value={formatCurrency(avgRevenue)}
                     darkTheme={darkTheme}
                 />
-                <StatItem 
-                    label="Average Net Income" 
-                    value={formatCurrency(avgNetIncome)} 
+                <StatItem
+                    label="Average Net Income"
+                    value={formatCurrency(avgNetIncome)}
                     darkTheme={darkTheme}
                 />
-                <StatItem 
-                    label="Revenue Volatility" 
-                    value={`${revenueVolatility.toFixed(2)}%`} 
+                <StatItem
+                    label="Revenue Volatility"
+                    value={`${revenueVolatility.toFixed(2)}%`}
                     darkTheme={darkTheme}
                 />
-                <StatItem 
-                    label="Profit Volatility" 
-                    value={`${profitVolatility.toFixed(2)}%`} 
+                <StatItem
+                    label="Profit Volatility"
+                    value={`${profitVolatility.toFixed(2)}%`}
                     darkTheme={darkTheme}
                 />
-                <StatItem 
-                    label="Periods Analyzed" 
-                    value={data.length.toString()} 
+                <StatItem
+                    label="Periods Analyzed"
+                    value={data.length.toString()}
                     darkTheme={darkTheme}
                 />
-                <StatItem 
-                    label="Latest Period" 
-                    value={formatDate(latestData.fiscalDateEnding)} 
+                <StatItem
+                    label="Latest Period"
+                    value={formatDate(latestData.fiscalDateEnding)}
                     darkTheme={darkTheme}
                 />
             </div>
@@ -865,14 +842,14 @@ function QuickStats({ data, latestData, darkTheme }) {
     );
 }
 
-function calculateVolatility(data, field) {
-    if (data.length < 2) return 0;
-    const values = data.map(d => parseFloat(d[field]) || 0);
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
-    const stdDev = Math.sqrt(variance);
-    return (stdDev / mean) * 100;
-}
+// function calculateVolatility(data, field) {
+//     if (data.length < 2) return 0;
+//     const values = data.map(d => parseFloat(d[field]) || 0);
+//     const mean = values.reduce((a, b) => a + b, 0) / values.length;
+//     const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+//     const stdDev = Math.sqrt(variance);
+//     return (stdDev / mean) * 100;
+// }
 
 function StatItem({ label, value, darkTheme }) {
     return (
@@ -899,7 +876,7 @@ function DetailedView({ financialData, darkTheme, columns }) {
     };
 
     // Get all available fields from the data
-    const availableFields = Object.keys(allFields).filter(field => 
+    const availableFields = Object.keys(allFields).filter(field =>
         financialData.some(item => item[field] !== undefined && item[field] !== null && item[field] !== 'None')
     );
 
@@ -908,7 +885,7 @@ function DetailedView({ financialData, darkTheme, columns }) {
             <h2 style={darkTheme ? styles.sectionTitleDark : styles.sectionTitle}>
                 📋 Detailed Financial Statements
             </h2>
-            <p style={{ 
+            <p style={{
                 color: darkTheme ? '#94a3b8' : '#6b7280',
                 marginBottom: '20px',
                 fontSize: '0.95rem'
@@ -929,15 +906,15 @@ function DetailedView({ financialData, darkTheme, columns }) {
                     </thead>
                     <tbody>
                         {financialData.map((item, idx) => (
-                            <tr 
-                                key={idx} 
+                            <tr
+                                key={idx}
                                 style={darkTheme ? styles.tableRowDark : styles.tableRow}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = darkTheme ? '#334155' : '#f3f4f6'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
                                 {availableFields.map(field => (
                                     <td key={field} style={darkTheme ? styles.tableCellDark : styles.tableCell}>
-                                        {field === 'fiscalDateEnding' 
+                                        {field === 'fiscalDateEnding'
                                             ? formatDate(item[field])
                                             : formatCurrency(item[field])}
                                     </td>
@@ -971,8 +948,8 @@ function DetailedView({ financialData, darkTheme, columns }) {
                                 <div style={darkTheme ? styles.statValueDark : styles.statValue}>
                                     Avg: {formatCurrency(avg)}
                                 </div>
-                                <div style={{ 
-                                    fontSize: '0.75rem', 
+                                <div style={{
+                                    fontSize: '0.75rem',
                                     color: darkTheme ? '#64748b' : '#9ca3af',
                                     marginTop: '4px'
                                 }}>
@@ -1330,8 +1307,8 @@ function RelativePerformance({ companies, period, darkTheme, metric, limit }) {
                                     fontSize: '0.875rem',
                                     color: darkTheme ? '#94a3b8' : '#6b7280'
                                 }}>
-                                    Score: {metric === 'revenue' || metric === 'profitability' 
-                                        ? formatCurrency(item.score) 
+                                    Score: {metric === 'revenue' || metric === 'profitability'
+                                        ? formatCurrency(item.score)
                                         : `${item.score.toFixed(2)}%`}
                                 </div>
                             </div>
@@ -1368,7 +1345,7 @@ function ErrorScreen({ error, tableName, columns, darkTheme }) {
                 <strong>Table:</strong> {tableName}<br />
                 <strong>Columns:</strong> {columns.join(', ')}
             </div>
-            <button 
+            <button
                 style={styles.errorButton}
                 onClick={() => window.location.reload()}
             >
@@ -1396,667 +1373,667 @@ function NoDataScreen({ tableName, darkTheme }) {
 // ===== STYLES =====
 
 const styles = {
-//   container: {
-//     minHeight: '100vh',
-//     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-//     padding: '20px',
-//     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-//   },
-  containerDark: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-    padding: '20px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  },
-  unifiedToolbar: {
-    background: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(10px)',
-    borderRadius: '16px',
-    padding: '16px 24px',
-    marginBottom: '24px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '20px',
-    flexWrap: 'wrap'
-  },
-  unifiedToolbarDark: {
-    background: 'rgba(30, 41, 59, 0.95)',
-    backdropFilter: 'blur(10px)',
-    borderRadius: '16px',
-    padding: '16px 24px',
-    marginBottom: '24px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '20px',
-    flexWrap: 'wrap',
-    border: '1px solid rgba(255, 255, 255, 0.1)'
-  },
-  toolbarLeft: {
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center'
-  },
-  toolbarRight: {
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'center',
-    flexWrap: 'wrap'
-  },
-  viewTab: {
-    padding: '10px 20px',
-    border: 'none',
-    borderRadius: '8px',
-    background: 'transparent',
-    color: '#6b7280',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-  viewTabActive: {
-    background: '#667eea',
-    color: 'white',
-    fontWeight: '600'
-  },
-  viewTabDark: {
-    padding: '10px 20px',
-    border: 'none',
-    borderRadius: '8px',
-    background: 'transparent',
-    color: '#94a3b8',
-    fontSize: '0.95rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-  viewTabActiveDark: {
-    background: '#3b82f6',
-    color: 'white',
-    fontWeight: '600'
-  },
-  toolbarSelect: {
-    padding: '8px 16px',
-    borderRadius: '8px',
-    border: '2px solid #e5e7eb',
-    background: 'white',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    outline: 'none'
-  },
-  toolbarSelectDark: {
-    padding: '8px 16px',
-    borderRadius: '8px',
-    border: '2px solid #334155',
-    background: '#0f172a',
-    color: '#f1f5f9',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    outline: 'none'
-  },
-  customInput: {
-    padding: '8px 12px',
-    borderRadius: '8px',
-    border: '2px solid #e5e7eb',
-    background: 'white',
-    fontSize: '0.9rem',
-    width: '100px',
-    fontWeight: '500',
-    outline: 'none',
-    transition: 'all 0.2s'
-  },
-  customInputDark: {
-    padding: '8px 12px',
-    borderRadius: '8px',
-    border: '2px solid #334155',
-    background: '#0f172a',
-    color: '#f1f5f9',
-    fontSize: '0.9rem',
-    width: '100px',
-    fontWeight: '500',
-    outline: 'none',
-    transition: 'all 0.2s'
-  },
-  darkModeToggle: {
-    padding: '8px 12px',
-    borderRadius: '8px',
-    border: '2px solid #e5e7eb',
-    background: 'white',
-    color: '#374151',
-    fontSize: '1.2rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    outline: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: '44px',
-    height: '38px'
-  },
-  darkModeToggleDark: {
-    padding: '8px 12px',
-    borderRadius: '8px',
-    border: '2px solid #334155',
-    background: '#0f172a',
-    color: '#f1f5f9',
-    fontSize: '1.2rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    outline: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: '44px',
-    height: '38px'
-  },
-  metricsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '20px',
-    marginBottom: '24px'
-  },
-  metricCard: {
-    background: 'white',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    cursor: 'pointer'
-  },
-  metricCardDark: {
-    background: '#1e293b',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    cursor: 'pointer',
-    border: '1px solid #334155'
-  },
-  metricTitle: {
-    fontSize: '0.875rem',
-    color: '#6b7280',
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px'
-  },
-  metricTitleDark: {
-    fontSize: '0.875rem',
-    color: '#cbd5e1',
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px'
-  },
-  metricValue: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: '8px'
-  },
-  metricValueDark: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: '8px'
-  },
-  chartsContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-    gap: '20px',
-    marginBottom: '24px'
-  },
-  chartCard: {
-    background: 'white',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-  },
-  chartCardDark: {
-    background: '#1e293b',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    border: '1px solid #334155'
-  },
-  chartTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: '20px',
-    margin: '0 0 20px 0'
-  },
-  chartTitleDark: {
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: '20px',
-    margin: '0 0 20px 0'
-  },
-  chartContent: {
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: '250px',
-    paddingBottom: '40px'
-  },
-  barContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    flex: 1,
-    minWidth: '30px'
-  },
-  bar: {
-    width: '100%',
-    borderRadius: '4px 4px 0 0',
-    transition: 'all 0.3s',
-    cursor: 'pointer'
-  },
-  viewSelector: {
-    display: 'flex',
-    gap: '8px',
-    background: 'rgba(0,0,0,0.05)',
-    padding: '4px',
-    borderRadius: '8px'
-  },
-  viewButton: {
-    padding: '8px 12px',
-    border: 'none',
-    borderRadius: '6px',
-    background: 'transparent',
-    fontSize: '1.2rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-  viewButtonActive: {
-    background: 'white',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-  },
-  viewButtonDark: {
-    padding: '8px 12px',
-    border: 'none',
-    borderRadius: '6px',
-    background: 'transparent',
-    fontSize: '1.2rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-  viewButtonActiveDark: {
-    background: '#334155',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-  },
-  metricsContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px'
-  },
-  profitMetric: {
-    transition: 'all 0.2s'
-  },
-  quickStatsContainer: {
-    background: 'white',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    marginBottom: '20px'
-  },
-  quickStatsContainerDark: {
-    background: '#1e293b',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    marginBottom: '20px',
-    border: '1px solid #334155'
-  },
-  sectionTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: '20px',
-    margin: '0 0 20px 0'
-  },
-  sectionTitleDark: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: '20px',
-    margin: '0 0 20px 0'
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: '16px'
-  },
-  statItem: {
-    padding: '16px',
-    background: '#f9fafb',
-    borderRadius: '8px',
-    border: '1px solid #e5e7eb'
-  },
-  statItemDark: {
-    padding: '16px',
-    background: '#0f172a',
-    borderRadius: '8px',
-    border: '1px solid #334155'
-  },
-  statLabel: {
-    fontSize: '0.875rem',
-    color: '#6b7280',
-    marginBottom: '8px'
-  },
-  statLabelDark: {
-    fontSize: '0.875rem',
-    color: '#94a3b8',
-    marginBottom: '8px'
-  },
-  statValue: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#1f2937'
-  },
-  statValueDark: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: '#f1f5f9'
-  },
-  detailedContainer: {
-    background: 'white',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-  },
-  detailedContainerDark: {
-    background: '#1e293b',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    border: '1px solid #334155'
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-    overflowY: 'auto',
-    maxHeight: '600px',
-    borderRadius: '8px',
-    border: '1px solid #e5e7eb'
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.875rem'
-  },
-  tableHeaderRow: {
-    background: '#f9fafb',
-    borderBottom: '2px solid #e5e7eb'
-  },
-  tableHeaderRowDark: {
-    background: '#0f172a',
-    borderBottom: '2px solid #334155'
-  },
-  tableHeader: {
-    padding: '14px 12px',
-    textAlign: 'left',
-    fontWeight: '600',
-    color: '#374151',
-    position: 'sticky',
-    top: 0,
-    background: '#f9fafb',
-    whiteSpace: 'nowrap'
-  },
-  tableHeaderDark: {
-    padding: '14px 12px',
-    textAlign: 'left',
-    fontWeight: '600',
-    color: '#cbd5e1',
-    position: 'sticky',
-    top: 0,
-    background: '#0f172a',
-    whiteSpace: 'nowrap'
-  },
-  tableRow: {
-    borderBottom: '1px solid #e5e7eb',
-    transition: 'background-color 0.2s'
-  },
-  tableRowDark: {
-    borderBottom: '1px solid #334155',
-    transition: 'background-color 0.2s'
-  },
-  tableCell: {
-    padding: '14px 12px',
-    color: '#1f2937',
-    whiteSpace: 'nowrap'
-  },
-  tableCellDark: {
-    padding: '14px 12px',
-    color: '#f1f5f9',
-    whiteSpace: 'nowrap'
-  },
-  comparisonContainer: {
-    background: 'white',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-  },
-  comparisonContainerDark: {
-    background: '#1e293b',
-    padding: '24px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    border: '1px solid #334155'
-  },
-  companyButtons: {
-    display: 'flex',
-    gap: '12px',
-    flexWrap: 'wrap'
-  },
-  companyButton: {
-    padding: '10px 20px',
-    border: '2px solid #e5e7eb',
-    borderRadius: '8px',
-    background: 'white',
-    color: '#374151',
-    fontSize: '0.95rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    fontWeight: '500'
-  },
-  companyButtonActive: {
-    background: '#667eea',
-    color: 'white',
-    borderColor: '#667eea',
-    fontWeight: '600'
-  },
-  companyButtonDark: {
-    padding: '10px 20px',
-    border: '2px solid #475569',
-    borderRadius: '8px',
-    background: '#0f172a',
-    color: '#cbd5e1',
-    fontSize: '0.95rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    fontWeight: '500'
-  },
-  companyButtonActiveDark: {
-    background: '#3b82f6',
-    color: 'white',
-    borderColor: '#3b82f6',
-    fontWeight: '600'
-  },
-  comparisonGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '20px',
-    marginTop: '24px'
-  },
-  comparisonCard: {
-    padding: '24px',
-    border: '2px solid #e5e7eb',
-    borderRadius: '12px',
-    background: '#fafafa'
-  },
-  comparisonCardDark: {
-    padding: '24px',
-    border: '2px solid #334155',
-    borderRadius: '12px',
-    background: '#0f172a'
-  },
-  comparisonCardTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: '20px',
-    margin: '0 0 20px 0'
-  },
-  comparisonCardTitleDark: {
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: '20px',
-    margin: '0 0 20px 0'
-  },
-  comparisonMetrics: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px'
-  },
-  comparisonMetric: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px',
-    background: 'white',
-    borderRadius: '8px'
-  },
-  comparisonMetricDark: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px',
-    background: '#1e293b',
-    borderRadius: '8px',
-    border: '1px solid #334155'
-  },
-  comparisonLabel: {
-    fontSize: '0.875rem',
-    color: '#6b7280',
-    fontWeight: '500'
-  },
-  comparisonLabelDark: {
-    fontSize: '0.875rem',
-    color: '#94a3b8',
-    fontWeight: '500'
-  },
-  comparisonValue: {
-    fontSize: '1.1rem',
-    fontWeight: '700',
-    color: '#1f2937'
-  },
-  comparisonValueDark: {
-    fontSize: '1.1rem',
-    fontWeight: '700',
-    color: '#f1f5f9'
-  },
-  comparisonDate: {
-    marginTop: '16px',
-    fontSize: '0.875rem',
-    color: '#6b7280',
-    textAlign: 'center'
-  },
-  comparisonDateDark: {
-    marginTop: '16px',
-    fontSize: '0.875rem',
-    color: '#94a3b8',
-    textAlign: 'center'
-  },
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    color: 'white'
-  },
-  loadingContainerDark: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    color: 'white'
-  },
-  spinner: {
-    width: '50px',
-    height: '50px',
-    border: '4px solid rgba(255, 255, 255, 0.3)',
-    borderTop: '4px solid white',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite'
-  },
-  loadingText: {
-    marginTop: '20px',
-    fontSize: '1.2rem'
-  },
-  errorContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    color: 'white',
-    textAlign: 'center',
-    padding: '20px'
-  },
-  errorContainerDark: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    color: 'white',
-    textAlign: 'center',
-    padding: '20px'
-  },
-  errorIcon: {
-    fontSize: '4rem',
-    marginBottom: '20px'
-  },
-  errorTitle: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    marginBottom: '10px'
-  },
-  errorMessage: {
-    fontSize: '1.1rem',
-    marginBottom: '20px',
-    opacity: 0.9
-  },
-  errorDetails: {
-    background: 'rgba(255, 255, 255, 0.1)',
-    padding: '20px',
-    borderRadius: '8px',
-    marginBottom: '20px',
-    maxWidth: '600px',
-    backdropFilter: 'blur(10px)',
-    textAlign: 'left'
-  },
-  errorButton: {
-    padding: '12px 24px',
-    background: 'white',
-    color: '#667eea',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'transform 0.2s'
-  }
+    //   container: {
+    //     minHeight: '100vh',
+    //     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    //     padding: '20px',
+    //     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    //   },
+    containerDark: {
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        padding: '20px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    },
+    unifiedToolbar: {
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '16px',
+        padding: '16px 24px',
+        marginBottom: '24px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '20px',
+        flexWrap: 'wrap'
+    },
+    unifiedToolbarDark: {
+        background: 'rgba(30, 41, 59, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '16px',
+        padding: '16px 24px',
+        marginBottom: '24px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '20px',
+        flexWrap: 'wrap',
+        border: '1px solid rgba(255, 255, 255, 0.1)'
+    },
+    toolbarLeft: {
+        display: 'flex',
+        gap: '8px',
+        alignItems: 'center'
+    },
+    toolbarRight: {
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'center',
+        flexWrap: 'wrap'
+    },
+    viewTab: {
+        padding: '10px 20px',
+        border: 'none',
+        borderRadius: '8px',
+        background: 'transparent',
+        color: '#6b7280',
+        fontSize: '0.95rem',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    viewTabActive: {
+        background: '#667eea',
+        color: 'white',
+        fontWeight: '600'
+    },
+    viewTabDark: {
+        padding: '10px 20px',
+        border: 'none',
+        borderRadius: '8px',
+        background: 'transparent',
+        color: '#94a3b8',
+        fontSize: '0.95rem',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    viewTabActiveDark: {
+        background: '#3b82f6',
+        color: 'white',
+        fontWeight: '600'
+    },
+    toolbarSelect: {
+        padding: '8px 16px',
+        borderRadius: '8px',
+        border: '2px solid #e5e7eb',
+        background: 'white',
+        fontSize: '0.9rem',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        outline: 'none'
+    },
+    toolbarSelectDark: {
+        padding: '8px 16px',
+        borderRadius: '8px',
+        border: '2px solid #334155',
+        background: '#0f172a',
+        color: '#f1f5f9',
+        fontSize: '0.9rem',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        outline: 'none'
+    },
+    customInput: {
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '2px solid #e5e7eb',
+        background: 'white',
+        fontSize: '0.9rem',
+        width: '100px',
+        fontWeight: '500',
+        outline: 'none',
+        transition: 'all 0.2s'
+    },
+    customInputDark: {
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '2px solid #334155',
+        background: '#0f172a',
+        color: '#f1f5f9',
+        fontSize: '0.9rem',
+        width: '100px',
+        fontWeight: '500',
+        outline: 'none',
+        transition: 'all 0.2s'
+    },
+    darkModeToggle: {
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '2px solid #e5e7eb',
+        background: 'white',
+        color: '#374151',
+        fontSize: '1.2rem',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        outline: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '44px',
+        height: '38px'
+    },
+    darkModeToggleDark: {
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '2px solid #334155',
+        background: '#0f172a',
+        color: '#f1f5f9',
+        fontSize: '1.2rem',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        outline: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '44px',
+        height: '38px'
+    },
+    metricsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '20px',
+        marginBottom: '24px'
+    },
+    metricCard: {
+        background: 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        cursor: 'pointer'
+    },
+    metricCardDark: {
+        background: '#1e293b',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        cursor: 'pointer',
+        border: '1px solid #334155'
+    },
+    metricTitle: {
+        fontSize: '0.875rem',
+        color: '#6b7280',
+        fontWeight: '500',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+    },
+    metricTitleDark: {
+        fontSize: '0.875rem',
+        color: '#cbd5e1',
+        fontWeight: '500',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+    },
+    metricValue: {
+        fontSize: '2rem',
+        fontWeight: '700',
+        color: '#1f2937',
+        marginBottom: '8px'
+    },
+    metricValueDark: {
+        fontSize: '2rem',
+        fontWeight: '700',
+        color: '#f1f5f9',
+        marginBottom: '8px'
+    },
+    chartsContainer: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gap: '20px',
+        marginBottom: '24px'
+    },
+    chartCard: {
+        background: 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+    },
+    chartCardDark: {
+        background: '#1e293b',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        border: '1px solid #334155'
+    },
+    chartTitle: {
+        fontSize: '1.25rem',
+        fontWeight: '700',
+        color: '#1f2937',
+        marginBottom: '20px',
+        margin: '0 0 20px 0'
+    },
+    chartTitleDark: {
+        fontSize: '1.25rem',
+        fontWeight: '700',
+        color: '#f1f5f9',
+        marginBottom: '20px',
+        margin: '0 0 20px 0'
+    },
+    chartContent: {
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        height: '250px',
+        paddingBottom: '40px'
+    },
+    barContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        flex: 1,
+        minWidth: '30px'
+    },
+    bar: {
+        width: '100%',
+        borderRadius: '4px 4px 0 0',
+        transition: 'all 0.3s',
+        cursor: 'pointer'
+    },
+    viewSelector: {
+        display: 'flex',
+        gap: '8px',
+        background: 'rgba(0,0,0,0.05)',
+        padding: '4px',
+        borderRadius: '8px'
+    },
+    viewButton: {
+        padding: '8px 12px',
+        border: 'none',
+        borderRadius: '6px',
+        background: 'transparent',
+        fontSize: '1.2rem',
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    viewButtonActive: {
+        background: 'white',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    },
+    viewButtonDark: {
+        padding: '8px 12px',
+        border: 'none',
+        borderRadius: '6px',
+        background: 'transparent',
+        fontSize: '1.2rem',
+        cursor: 'pointer',
+        transition: 'all 0.2s'
+    },
+    viewButtonActiveDark: {
+        background: '#334155',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+    },
+    metricsContainer: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '16px'
+    },
+    profitMetric: {
+        transition: 'all 0.2s'
+    },
+    quickStatsContainer: {
+        background: 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        marginBottom: '20px'
+    },
+    quickStatsContainerDark: {
+        background: '#1e293b',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        marginBottom: '20px',
+        border: '1px solid #334155'
+    },
+    sectionTitle: {
+        fontSize: '1.5rem',
+        fontWeight: '700',
+        color: '#1f2937',
+        marginBottom: '20px',
+        margin: '0 0 20px 0'
+    },
+    sectionTitleDark: {
+        fontSize: '1.5rem',
+        fontWeight: '700',
+        color: '#f1f5f9',
+        marginBottom: '20px',
+        margin: '0 0 20px 0'
+    },
+    statsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: '16px'
+    },
+    statItem: {
+        padding: '16px',
+        background: '#f9fafb',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb'
+    },
+    statItemDark: {
+        padding: '16px',
+        background: '#0f172a',
+        borderRadius: '8px',
+        border: '1px solid #334155'
+    },
+    statLabel: {
+        fontSize: '0.875rem',
+        color: '#6b7280',
+        marginBottom: '8px'
+    },
+    statLabelDark: {
+        fontSize: '0.875rem',
+        color: '#94a3b8',
+        marginBottom: '8px'
+    },
+    statValue: {
+        fontSize: '1.25rem',
+        fontWeight: '600',
+        color: '#1f2937'
+    },
+    statValueDark: {
+        fontSize: '1.25rem',
+        fontWeight: '600',
+        color: '#f1f5f9'
+    },
+    detailedContainer: {
+        background: 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+    },
+    detailedContainerDark: {
+        background: '#1e293b',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        border: '1px solid #334155'
+    },
+    tableWrapper: {
+        overflowX: 'auto',
+        overflowY: 'auto',
+        maxHeight: '600px',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb'
+    },
+    table: {
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: '0.875rem'
+    },
+    tableHeaderRow: {
+        background: '#f9fafb',
+        borderBottom: '2px solid #e5e7eb'
+    },
+    tableHeaderRowDark: {
+        background: '#0f172a',
+        borderBottom: '2px solid #334155'
+    },
+    tableHeader: {
+        padding: '14px 12px',
+        textAlign: 'left',
+        fontWeight: '600',
+        color: '#374151',
+        position: 'sticky',
+        top: 0,
+        background: '#f9fafb',
+        whiteSpace: 'nowrap'
+    },
+    tableHeaderDark: {
+        padding: '14px 12px',
+        textAlign: 'left',
+        fontWeight: '600',
+        color: '#cbd5e1',
+        position: 'sticky',
+        top: 0,
+        background: '#0f172a',
+        whiteSpace: 'nowrap'
+    },
+    tableRow: {
+        borderBottom: '1px solid #e5e7eb',
+        transition: 'background-color 0.2s'
+    },
+    tableRowDark: {
+        borderBottom: '1px solid #334155',
+        transition: 'background-color 0.2s'
+    },
+    tableCell: {
+        padding: '14px 12px',
+        color: '#1f2937',
+        whiteSpace: 'nowrap'
+    },
+    tableCellDark: {
+        padding: '14px 12px',
+        color: '#f1f5f9',
+        whiteSpace: 'nowrap'
+    },
+    comparisonContainer: {
+        background: 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+    },
+    comparisonContainerDark: {
+        background: '#1e293b',
+        padding: '24px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        border: '1px solid #334155'
+    },
+    companyButtons: {
+        display: 'flex',
+        gap: '12px',
+        flexWrap: 'wrap'
+    },
+    companyButton: {
+        padding: '10px 20px',
+        border: '2px solid #e5e7eb',
+        borderRadius: '8px',
+        background: 'white',
+        color: '#374151',
+        fontSize: '0.95rem',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        fontWeight: '500'
+    },
+    companyButtonActive: {
+        background: '#667eea',
+        color: 'white',
+        borderColor: '#667eea',
+        fontWeight: '600'
+    },
+    companyButtonDark: {
+        padding: '10px 20px',
+        border: '2px solid #475569',
+        borderRadius: '8px',
+        background: '#0f172a',
+        color: '#cbd5e1',
+        fontSize: '0.95rem',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        fontWeight: '500'
+    },
+    companyButtonActiveDark: {
+        background: '#3b82f6',
+        color: 'white',
+        borderColor: '#3b82f6',
+        fontWeight: '600'
+    },
+    comparisonGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '20px',
+        marginTop: '24px'
+    },
+    comparisonCard: {
+        padding: '24px',
+        border: '2px solid #e5e7eb',
+        borderRadius: '12px',
+        background: '#fafafa'
+    },
+    comparisonCardDark: {
+        padding: '24px',
+        border: '2px solid #334155',
+        borderRadius: '12px',
+        background: '#0f172a'
+    },
+    comparisonCardTitle: {
+        fontSize: '1.25rem',
+        fontWeight: '700',
+        color: '#1f2937',
+        marginBottom: '20px',
+        margin: '0 0 20px 0'
+    },
+    comparisonCardTitleDark: {
+        fontSize: '1.25rem',
+        fontWeight: '700',
+        color: '#f1f5f9',
+        marginBottom: '20px',
+        margin: '0 0 20px 0'
+    },
+    comparisonMetrics: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+    },
+    comparisonMetric: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px',
+        background: 'white',
+        borderRadius: '8px'
+    },
+    comparisonMetricDark: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px',
+        background: '#1e293b',
+        borderRadius: '8px',
+        border: '1px solid #334155'
+    },
+    comparisonLabel: {
+        fontSize: '0.875rem',
+        color: '#6b7280',
+        fontWeight: '500'
+    },
+    comparisonLabelDark: {
+        fontSize: '0.875rem',
+        color: '#94a3b8',
+        fontWeight: '500'
+    },
+    comparisonValue: {
+        fontSize: '1.1rem',
+        fontWeight: '700',
+        color: '#1f2937'
+    },
+    comparisonValueDark: {
+        fontSize: '1.1rem',
+        fontWeight: '700',
+        color: '#f1f5f9'
+    },
+    comparisonDate: {
+        marginTop: '16px',
+        fontSize: '0.875rem',
+        color: '#6b7280',
+        textAlign: 'center'
+    },
+    comparisonDateDark: {
+        marginTop: '16px',
+        fontSize: '0.875rem',
+        color: '#94a3b8',
+        textAlign: 'center'
+    },
+    loadingContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        color: 'white'
+    },
+    loadingContainerDark: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        color: 'white'
+    },
+    spinner: {
+        width: '50px',
+        height: '50px',
+        border: '4px solid rgba(255, 255, 255, 0.3)',
+        borderTop: '4px solid white',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
+    },
+    loadingText: {
+        marginTop: '20px',
+        fontSize: '1.2rem'
+    },
+    errorContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        color: 'white',
+        textAlign: 'center',
+        padding: '20px'
+    },
+    errorContainerDark: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        color: 'white',
+        textAlign: 'center',
+        padding: '20px'
+    },
+    errorIcon: {
+        fontSize: '4rem',
+        marginBottom: '20px'
+    },
+    errorTitle: {
+        fontSize: '2rem',
+        fontWeight: '700',
+        marginBottom: '10px'
+    },
+    errorMessage: {
+        fontSize: '1.1rem',
+        marginBottom: '20px',
+        opacity: 0.9
+    },
+    errorDetails: {
+        background: 'rgba(255, 255, 255, 0.1)',
+        padding: '20px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        maxWidth: '600px',
+        backdropFilter: 'blur(10px)',
+        textAlign: 'left'
+    },
+    errorButton: {
+        padding: '12px 24px',
+        background: 'white',
+        color: '#667eea',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '1rem',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'transform 0.2s'
+    }
 };
 
 const styleSheet = document.createElement("style");
