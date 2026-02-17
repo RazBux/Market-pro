@@ -243,7 +243,7 @@ function ControlPanel({
                 ))}
                 
                 {/* Show analysis sub-tabs when in analysis view */}
-                {view === 'analysis' && (
+                {/* {view === 'analysis' && (
                     <>
                         <div style={styles.dividerVertical}></div>
                         {analysisViewOptions.map(option => (
@@ -260,7 +260,8 @@ function ControlPanel({
                             </button>
                         ))}
                     </>
-                )}
+                )} */}
+                {view === 'analysis'}
             </div>
 
             <div style={styles.toolbarRight}>

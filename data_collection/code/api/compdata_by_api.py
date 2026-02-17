@@ -2,8 +2,8 @@
 import requests
 import json
 
-API_KEY = "0AQXEXJF4KHCIC6C"
-SYMBOL = "FSLR"             
+API_KEY = "2P09FJ911IW1PJW9"
+SYMBOL = "wmt"             
 BASE_URL = "https://www.alphavantage.co/query"
 
 params = {
